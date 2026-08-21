@@ -2567,32 +2567,28 @@
 		cleanUrl.hash = "";
 		window.history.replaceState({}, document.title, cleanUrl.toString());		
 
-		const inviteFullscreenButton = document.getElementById("inviteFullscreenButton");
-
 		const fullscreenButton = document.getElementById("inviteFullscreenButton");
 
 		if ('ontouchstart' in window && fullscreenButton) {
 			fullscreenButton.hidden = false;
 		} else {
+			OnlineLobbyDialogs.showJoinDialog();
 			tryJoinPendingInvitation();
 		}
 	}
 	
 	// Automatický Join pozvankky po pripravení Socket.IO
 	function tryJoinPendingInvitation() {
-		if (
-			!pendingOnlineInvitation ||
-			pendingOnlineInvitation.joinStarted
-		) {
+		if (!pendingOnlineInvitation || pendingOnlineInvitation.joinStarted) {
 			return;
 		}
 
-		if (
-			!NetworkManager.socket ||
-			!NetworkManager.socket.connected
-		) {
-			setTimeout(tryJoinPendingInvitation, 250);
-			return;
+		/*
+		 * Otvorením Join dialógu sa vykoná rovnaká
+		 * inicializácia ako pri ručnom stlačení J.
+		 */
+		if (!OnlineLobbyDialogs.isJoinDialogOpen()) {
+			OnlineLobbyDialogs.showJoinDialog();
 		}
 
 		const playerNameInput = document.getElementById("onlineJoinPlayerName");
@@ -2604,15 +2600,15 @@
 			return;
 		}
 
-		pendingOnlineInvitation.joinStarted = true;
-
 		playerNameInput.value = pendingOnlineInvitation.playerName;
 		roomNameInput.value = pendingOnlineInvitation.roomName;
 
-		/*
-		 * Použijeme existujúci Join handler tlačidla,
-		 * takže sa zachová všetka validácia a komunikácia.
-		 */
+		if (!NetworkManager.socket || !NetworkManager.socket.connected) {
+			setTimeout(tryJoinPendingInvitation, 250);
+			return;
+		}
+
+		pendingOnlineInvitation.joinStarted = true;
 		joinButton.click();
 	}	
 	
@@ -2637,6 +2633,8 @@
 		}
 
 		button.hidden = true;
+
+		OnlineLobbyDialogs.showJoinDialog();
 		tryJoinPendingInvitation();
 	}
 
