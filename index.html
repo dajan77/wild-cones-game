@@ -453,7 +453,26 @@
 		}
 	}
 
+	#inviteFullscreenButton {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 6000;
 
+		padding: 2vh 4vw;
+
+		color: white;
+		background: rgba(200, 40, 40, 0.9);
+
+		border: 0;
+		border-radius: 1vh;
+
+		font-family: sans-serif;
+		font-size: 3vh;
+		font-weight: bold;
+		cursor: pointer;
+	}
 
 	</style>
 
@@ -663,6 +682,7 @@
 	</button>
 
   <script>
+  
     // -----------------------------
     // Helper Functions
     // -----------------------------
@@ -2549,8 +2569,10 @@
 
 		const inviteFullscreenButton = document.getElementById("inviteFullscreenButton");
 
-		if ('ontouchstart' in window && inviteFullscreenButton) {
-			inviteFullscreenButton.hidden = false;
+		const fullscreenButton = document.getElementById("inviteFullscreenButton");
+
+		if ('ontouchstart' in window && fullscreenButton) {
+			fullscreenButton.hidden = false;
 		} else {
 			tryJoinPendingInvitation();
 		}
@@ -2595,41 +2617,37 @@
 	}	
 	
 
-	async function enterGameFullscreen() {
-		const element = document.documentElement;
+	async function enterInviteFullscreen() {
+		const button = document.getElementById("inviteFullscreenButton");
 
 		try {
-			if (!document.fullscreenElement && element.requestFullscreen) {
-				await element.requestFullscreen();
+			if (!document.fullscreenElement) {
+				await document.documentElement.requestFullscreen();
 			}
-
-			if (screen.orientation && screen.orientation.lock) {
-				try {
-					await screen.orientation.lock("landscape");
-				} catch (error) {
-					console.warn("Landscape orientation could not be locked:", error);
-				}
-			}
-
-			tryJoinPendingInvitation();
 		} catch (error) {
-			console.warn("Fullscreen could not be activated:", error);
-
-			/*
-			 * Join môže pokračovať aj v prípade,
-			 * že browser fullscreen nepovolil.
-			 */
-			tryJoinPendingInvitation();
+			console.warn("Fullscreen could not be enabled:", error);
 		}
-	}	
-	
-	document.getElementById("inviteFullscreenButton").addEventListener("pointerup", async event => {
+
+		if (screen.orientation && screen.orientation.lock) {
+			try {
+				await screen.orientation.lock("landscape");
+			} catch (error) {
+				console.warn("Landscape orientation could not be locked:", error);
+			}
+		}
+
+		button.hidden = true;
+		tryJoinPendingInvitation();
+	}
+
+
+	document.getElementById("inviteFullscreenButton").addEventListener("pointerup", event => {
 		event.preventDefault();
 		event.stopPropagation();
-
-		document.getElementById("inviteFullscreenButton").hidden = true;
-		await enterGameFullscreen();
+		enterInviteFullscreen();
 	});
+
+	
 
     // -----------------------------
 	//  Sounds
