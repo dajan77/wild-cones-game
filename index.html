@@ -2635,6 +2635,7 @@
 			playerName: playerName,
 			joinStarted: false,
 			retryStartedAt: Date.now(),
+			retryTimer: null,
 		};
 
 		console.log("[Invite] Pending invitation:", pendingOnlineInvitation);
@@ -2689,6 +2690,17 @@
 		joinButton.click();
 	}	
 	
+	function cancelPendingOnlineInvitation() {
+		if (!pendingOnlineInvitation) {
+			return;
+		}
+
+		if (pendingOnlineInvitation.retryTimer) {
+			clearTimeout(pendingOnlineInvitation.retryTimer);
+		}
+
+		pendingOnlineInvitation = null;
+	}	
 
 	async function enterInviteFullscreen() {
 		const button = document.getElementById("inviteFullscreenButton");
@@ -9569,10 +9581,15 @@
 							if (Date.now() - pendingOnlineInvitation.retryStartedAt < 60000) {
 								pendingOnlineInvitation.joinStarted = false;
 
-								setTimeout(() => {
+								pendingOnlineInvitation.retryTimer = setTimeout(() => {
+									if (!pendingOnlineInvitation) {
+										return;
+									}
+
+									pendingOnlineInvitation.retryTimer = null;
 									tryJoinPendingInvitation();
 								}, 2000);
-
+								
 								resolve({
 									ok: false,
 									retrying: true,
@@ -12713,6 +12730,7 @@
 				.addEventListener(
 					"click",
 					() => {
+						cancelPendingOnlineInvitation();
 						this.closeJoinDialog();
 					}
 				);
@@ -12732,6 +12750,7 @@
 				"keydown",
 				(event) => {
 					if (event.key === "Escape") {
+						cancelPendingOnlineInvitation();
 						this.closeHostDialog();
 						this.closeJoinDialog();
 					}
