@@ -531,25 +531,25 @@
 			overflow-y: auto;
 		}
 
+		.touch-device #onlineChatForm {
+			box-sizing: border-box;
+			width: 100%;
+			margin: 0;
+		}
+
 		.touch-device #onlineChatFrame {
 			box-sizing: border-box;
-			left: 2vw;
+			left: calc(2vw + 60px);
 			right: auto;
 			width: 66vw;
-			max-width: 66vw;
+			max-width: calc(98vw - 60px);
 			height: auto;
 			min-height: 0;
 			max-height: 80dvh;
 			transform: none;
 			padding: 10px;
-			font-size: 18px;
+			font-size: 16px;
 			overflow-y: auto;
-		}
-
-		.touch-device #onlineChatForm {
-			box-sizing: border-box;
-			width: 100%;
-			margin: 0;
 		}
 
 		.touch-device #onlineChatInput {
@@ -559,7 +559,7 @@
 			max-width: 100%;
 			min-width: 0;
 			padding: 9px 11px;
-			font-size: 18px;
+			font-size: 16px;
 			line-height: 1.25;
 		}
 
@@ -572,7 +572,7 @@
 			max-height: 55dvh;
 			margin-top: 8px;
 			padding-bottom: 4px;
-			font-size: 17px;
+			font-size: 16px;
 			line-height: 1.3;
 			overflow-y: auto;
 			overflow-wrap: anywhere;
@@ -992,8 +992,8 @@ window.addEventListener("keydown",function(a){if(!(typeof OnlineChat!=="undefine
 handleToogleGraphicsEvent();a.code==="KeyC"&&handleSwitchCameraEvent();a.code==="KeyL"&&handleToogleSpectatorsEvent();a.code==="KeyK"&&(disposeSpotlights(),shadowmaps=!shadowmaps,renderer.shadowMap.enabled=shadowmaps,spotLights.length===0&&createSpotlights());if(GState.gameState==="title"&&(a.code!=="ArrowUp"&&a.code!=="ArrowDown"&&a.code!=="ArrowLeft"&&a.code!=="ArrowRight"||manageKeyboardController(a.code),a.code==="KeyH"&&OnlineLobbyDialogs.showHostDialog(),a.code==="KeyJ"&&OnlineLobbyDialogs.showJoinDialog(),
 event.code==="KeyI"&&GState.gameState==="title"&&NetworkManager.isHost())){handleInviteEvent();return}event.code==="KeyT"&&NetworkManager.isOnline()&&!OnlineChat.hasInputFocus()?(event.preventDefault(),event.stopPropagation(),event.repeat||OnlineChat.keyTHoldTimer!==null||(OnlineChat.keyTLongPressTriggered=!1,OnlineChat.keyTHoldTimer=setTimeout(()=>{OnlineChat.keyTHoldTimer=null;OnlineChat.keyTLongPressTriggered=!0;OnlineChat.toggleAutoShowIncoming()},OnlineChat.keyTHoldTimeMs))):a.code==="KeyN"&&
 (onlinePlayerNamesVisible=!onlinePlayerNamesVisible,updateOnlinePlayerNameSprites(),msgText="Online player names: "+(onlinePlayerNamesVisible?"Visible":"Hidden"),msgExpireTime=Date.now()+MSG_TIME)}});
-window.addEventListener("keyup",function(a){typeof OnlineLobbyDialogs!=="undefined"&&OnlineLobbyDialogs.shouldBlockGameInput()||(event.code==="KeyT"&&NetworkManager.isOnline()&&!OnlineChat.hasInputFocus()?(event.preventDefault(),event.stopPropagation(),OnlineChat.keyTHoldTimer!==null&&(clearTimeout(OnlineChat.keyTHoldTimer),OnlineChat.keyTHoldTimer=null),OnlineChat.keyTLongPressTriggered||OnlineChat.open(!0,5E3),OnlineChat.keyTLongPressTriggered=!1):keys[a.code]=!1)});
-function handleInviteEvent(){event.preventDefault();event.stopPropagation();OnlineInviteDialog.open()}function handleSwitchCameraEvent(){switchCamera();vrControlState.sessionActive?applyVrCameraChange():setCamera(camSetting.type,!0)}function handleToogleGraphicsEvent(){graphicsLevel=graphicsLevel==1?0:1;setGraphicsLevel(graphicsLevel)}
+window.addEventListener("keyup",function(a){typeof OnlineLobbyDialogs!=="undefined"&&OnlineLobbyDialogs.shouldBlockGameInput()||(event.code==="KeyT"&&NetworkManager.isOnline()&&!OnlineChat.hasInputFocus()?(event.preventDefault(),event.stopPropagation(),OnlineChat.keyTHoldTimer!==null&&(clearTimeout(OnlineChat.keyTHoldTimer),OnlineChat.keyTHoldTimer=null),!OnlineChat.keyTLongPressTriggered&&NetworkManager.isOnline()&&(OnlineChat.frame&&!OnlineChat.frame.hidden?OnlineChat.close():OnlineChat.open(!0,
+5E3)),OnlineChat.keyTLongPressTriggered=!1):keys[a.code]=!1)});function handleInviteEvent(){event.preventDefault();event.stopPropagation();OnlineInviteDialog.open()}function handleSwitchCameraEvent(){switchCamera();vrControlState.sessionActive?applyVrCameraChange():setCamera(camSetting.type,!0)}function handleToogleGraphicsEvent(){graphicsLevel=graphicsLevel==1?0:1;setGraphicsLevel(graphicsLevel)}
 function handleToogleSpectatorsEvent(){spectatorsVisible?(spectatorsFrozen&&(spectatorsVisible=!1),spectatorsFrozen=!0):(spectatorsVisible=!0,spectatorsFrozen=!1);setSpectatorsVisible(spectatorsVisible);setSpectatorsFrozen(spectatorsFrozen)}
 function manageKeyboardController(a){let b=players.findIndex(d=>d.isMainUser);b===-1&&(b=NetworkManager.isOnline()&&NetworkManager.localPlayerIndex!==null?NetworkManager.localPlayerIndex:0);let c=0;switch(a){case "ArrowDown":c=1;break;case "ArrowUp":c=-1;break;case "ArrowLeft":break;case "ArrowRight":break;default:return}for(a=b+c;a>=0&&a<players.length;){if(NetworkManager.isOnline()){const d=NetworkManager.getOnlinePlayer(a);if(!d||d.peerId===NetworkManager.peerId)break}else break;a+=c}a<0||a>=players.length||
 (NetworkManager.isOnline()&&a!==b?(mainUserControllerType="keys",NetworkManager.changeLocalPlayerIndex(a)&&NetworkManager.isGuest()):assignControllerTypeToMainUser(players[a],"keys"))}
