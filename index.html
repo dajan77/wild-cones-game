@@ -4,537 +4,569 @@
 	<meta charset="UTF-8">
 	<title>Wild Cones Hockey Tournament</title>
 	<style>
-	body { margin: 0; background: #222; overflow: hidden; }
-	/* Overlay for title, score, timer, and messages */
-	#overlay {
-	  position: absolute;
-	  top: 0; left: 0;
-	  width: 100%;
-	  pointer-events: none;
-	  color: white;
-	  font-family: Arial, sans-serif;
-	  text-align: center;
-	  z-index: 10;
-	}
-	</style>
-	<style>
-	#hud-container {
-	  position: fixed;
-	  top: 2vh;
-	  left: 2vw;
-	  background-color: rgba(0, 0, 0, 0.2);
-	  color: white;
-	  padding: clamp(0.5vh, 1vh, 2vh) clamp(1vw, 1.5vw, 3vw);
-	  border-radius: clamp(0.5vh, 1vh, 2vh);
-	  font-family: sans-serif;
-	  font-size: clamp(8px, 1.5vh, 24px); /* bude mať vždy min 12px */
-	  line-height: 1.2;
-	  z-index: 1000;
-	  pointer-events: none;
-	  text-shadow: 0 0 5px black, 0 0 10px black;
-	}
-
-	#hud-container h2 {
-	  font-size: clamp(14px, 2vh, 28px);
-	  margin: clamp(0.5vh, 1vh, 2vh) 0;
-	}
-
-	#hud-container p {
-	  margin: clamp(0.25vh, 0.5vh, 1vh) 0;
-	}
-
-	#controls-container {
-	  position: fixed;
-	  top: 30%;
-	  left: 50%;
-	  transform: translate(-50%, -30%);
-	  background-color: rgba(0, 0, 0, 0.4);
-	  color: white;
-	  padding: 1vh 1.5vw;
-	  border-radius: 1vh;
-	  font-family: sans-serif;
-	  font-size: 2.0vh; /* scales with window height */
-	  line-height: 1.2;
-	  z-index: 1000;
-	  pointer-events: none;
-	  text-shadow: 0 0 5px black, 0 0 10px black;
-	}
-
-	#controls-container h2 {
-	  font-size: 2.5vh;
-	  margin: 1vh 0;
-	}
-
-	#controls-container p {
-	  font-size: 2vh;
-	  margin: 0.5vh 0;
-	}
-
-	.touch-device #controls-container {
-		top: 50%;
-		left: 50%;
-		right: auto;
-		bottom: auto;
-		transform: translate(-55%, -50%);
-
-		width: max-content;
-		max-width: 90vw;
-		height: auto;
-		max-height: 92vh;
-
-		box-sizing: border-box;
-		padding: 1vh 1.5vw;
-		margin: 0;
-
-		display: block;
-		overflow-y: auto;
-		pointer-events: auto;
-	}
-
-
-	.touch-zone {
-	  position: fixed;
-	  top: 0;
-	  bottom: 0;
-	  z-index: 1;
-	  touch-action: none;
-	}
-	.move-zone {
-	  left: 0;
-	  width: 50vw;
-	}
-	.rotate-zone {
-	  right: 0;
-	  width: 50vw;
-	}
-	.touch-button {
-		position: fixed;
-		width: 40px;
-		height: 40px;
-		background: rgba(10, 10, 10, 0.20);
-		border-radius: 50%;
-		z-index: 10;
-		touch-action: none;
-	}
-	.touch-button-label {
-	  color: white;
-	  font-family: sans-serif;
-	  font-weight: normal;
-	  font-size: 10px;
-	  position: absolute;
-	  top: 50%;
-	  left: 50%;
-	  transform: translate(-50%, -50%);
-	  pointer-events: none; /* So touches still register on the button */
-	}
-
-	/* Join and Host frames */
-
-	.online-dialog-backdrop {
-		position: fixed;
-		inset: 0;
-		z-index: 5000;
-
-		background: rgba(0, 0, 0, 0.72);
-		font-family: sans-serif;
-	}
-
-	.online-dialog-backdrop[hidden] {
-		display: none;
-	}
-
-	.online-dialog {
-		position: fixed;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-
-		box-sizing: border-box;
-		width: 30vw;
-		max-height: 90vh;
-		overflow-y: auto;
-
-		padding: 2vh 1.5vw;
-
-		color: white;
-		background: rgba(24, 24, 30, 0.96);
-
-		border: 0.1vh solid rgba(255, 255, 255, 0.25);
-		border-radius: 1vh;
-
-		box-shadow:
-			0 1vh 4vh rgba(0, 0, 0, 0.75),
-			0 0 2vh rgba(255, 204, 51, 0.08);
-
-		font-family: sans-serif;
-		font-size: 1.6vh;
-		line-height: 1.2;
-	}
-
-	.online-join-dialog {
-		width: 40vw;
-	}
-
-	.online-dialog h2 {
-		margin: 0 0 2vh 0;
-
-		color: #FF4D00;
-		font-size: 2.8vh;
-		font-weight: normal;
-		text-align: center;
-	}
-
-	.online-dialog label {
-		display: block;
-		margin: 1.2vh 0 0.5vh 0;
-
-		color: #eeeeee;
-		font-size: 1.6vh;
-	}
-
-	.online-dialog input[type="text"] {
-		box-sizing: border-box;
-		width: 100%;
-
-		padding: 1vh 0.8vw;
-
-		color: white;
-		background: #151515;
-
-		border: 0.1vh solid #666666;
-		border-radius: 0.6vh;
-
-		font-family: sans-serif;
-		font-size: 1.7vh;
-		outline: none;
-	}
-
-	.online-dialog input[type="text"]:focus {
-		border-color: #FF4D00;
-		box-shadow: 0 0 0 0.2vh rgba(255, 204, 51, 0.15);
-	}
-
-	.online-checkbox-row {
-		display: flex !important;
-		align-items: center;
-
-		gap: 0.6vw;
-		margin-top: 1.5vh !important;
-
-		font-size: 1.6vh;
-		cursor: pointer;
-	}
-
-	.online-checkbox-row input[type="checkbox"] {
-		width: 1.8vh;
-		height: 1.8vh;
-	}
-
-	.online-dialog-buttons {
-		display: flex;
-		justify-content: flex-end;
-
-		gap: 0.8vw;
-		margin-top: 2vh;
-	}
-
-	.online-dialog button {
-		padding: 1vh 1vw;
-
-		color: #111111;
-		background: #FF4D00;
-
-		border: 0;
-		border-radius: 0.6vh;
-
-		font-family: sans-serif;
-		font-size: 1.5vh;
-		font-weight: bold;
-		cursor: pointer;
-	}
-
-	.online-dialog button:hover {
-		filter: brightness(1.1);
-	}
-
-	.online-dialog button:disabled {
-		cursor: default;
-		filter: none;
-		opacity: 0.5;
-	}
-
-	.online-dialog .online-secondary-button {
-		color: white;
-		background: #555555;
-	}
-
-	.online-dialog .online-small-button {
-		padding: 0.7vh 0.7vw;
-		font-size: 1.3vh;
-	}
-
-	.online-dialog-message {
-		min-height: 2vh;
-		margin-top: 1.2vh;
-
-		color: #ff8b8b;
-		font-size: 1.4vh;
-	}
-
-	.online-dialog-message.online-success {
-		color: #7cff9b;
-	}
-
-	.online-room-list-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-
-		margin-top: 2vh;
-		margin-bottom: 0.6vh;
-
-		color: #eeeeee;
-		font-size: 1.5vh;
-	}
-
-	.online-room-list {
-		max-height: 28vh;
-		overflow-y: auto;
-
-		background: #121212;
-
-		border: 0.1vh solid #555555;
-		border-radius: 0.6vh;
-	}
-
-	.online-room-row {
-		display: grid;
-		grid-template-columns: 1fr auto auto;
-		gap: 0.8vw;
-		align-items: center;
-
-		padding: 1vh 0.8vw;
-
-		border-bottom: 0.1vh solid #333333;
-		cursor: pointer;
-	}
-
-	.online-room-row:last-child {
-		border-bottom: 0;
-	}
-
-	.online-room-row:hover {
-		background: rgba(255, 204, 51, 0.14);
-	}
-
-	.online-room-name {
-		color: #ffdd66;
-		font-size: 1.5vh;
-		font-weight: bold;
-		overflow-wrap: anywhere;
-	}
-
-	.online-room-host,
-	.online-room-count {
-		color: #cccccc;
-		font-size: 1.3vh;
-	}
-
-	.online-room-count {
-		white-space: nowrap;
-	}
-
-	.online-room-list-info {
-		padding: 1.5vh 1vw;
-
-		color: #aaaaaa;
-		font-size: 1.4vh;
-		text-align: center;
-	}
-
-	/* Online connection */
-
-	.online-connection-frame {
-		position: fixed;
-		top: 2vh;
-		right: 2vw;
-		left: auto;
-		bottom: auto;
-		z-index: 4500;
-
-		box-sizing: border-box;
-		max-width: 35vw;
-
-		padding: 1vh 1.5vw;
-
-		color: white;
-		background-color: rgba(0, 0, 0, 0.2);
-
-		border: none;
-		border-radius: 1vh;
-		box-shadow: none;
-
-		font-family: sans-serif;
-		font-size: 1.5vh;
-		line-height: 1.2;
-
-		pointer-events: none;
-		text-shadow: 0 0 5px black, 0 0 10px black;
-	}
-
-	.online-connection-frame[hidden] {
-		display: none;
-	}
-
-	.online-connection-frame strong {
-		color: #FF4D00;
-		font-size: 1.7vh;
-		font-weight: normal;
-	}
-
-	/* Online Chat */
-
-	.online-chat-frame {
-		position: fixed;
-		top: 14vh;
-		left: 2vw;
-		z-index: 4600;
-
-		box-sizing: border-box;
-		width: 28vw;
-		max-height: 34vh;
-
-		padding: 1vh 1vw;
-
-		color: white;
-		background-color: rgba(0, 0, 0, 0.2);
-
-		border-radius: 1vh;
-
-		font-family: sans-serif;
-		font-size: 1.5vh;
-		line-height: 1.2;
-
-		text-shadow: 0 0 5px black, 0 0 10px black;
-	}
-
-	.online-chat-frame[hidden] {
-		display: none;
-	}
-
-	.online-chat-frame input {
-		box-sizing: border-box;
-		width: 100%;
-
-		padding: 0.8vh 0.7vw;
-		margin-bottom: 0.8vh;
-
-		color: white;
-		background-color: rgba(0, 0, 0, 0.55);
-
-		border: 0.1vh solid rgba(255, 255, 255, 0.35);
-		border-radius: 0.5vh;
-
-		font-family: sans-serif;
-		font-size: 1.5vh;
-		text-shadow: none;
-		outline: none;
-	}
-
-	.online-chat-frame input:focus {
-		border-color: #FF4D00;
-	}
-
-	.online-chat-messages {
-		display: flex;
-		flex-direction: column;
-		gap: 0.35vh;
-
-		max-height: 25vh;
-		overflow-y: auto;
-
-		overflow-wrap: anywhere;
-	}
-
-	.online-chat-message {
-		color: white;
-	}
-
-	.online-chat-player-name {
-		font-weight: bold;
-	}
-	
-	.online-chat-time {
-		color: white;
-		font-weight: normal;
-	}
-
-	@media (max-width: 800px) {
-		.online-chat-frame {
-			width: 50vw;
+		body { margin: 0; background: #222; overflow: hidden; }
+		/* Overlay for title, score, timer, and messages */
+		#overlay {
+		  position: absolute;
+		  top: 0; left: 0;
+		  width: 100%;
+		  pointer-events: none;
+		  color: white;
+		  font-family: Arial, sans-serif;
+		  text-align: center;
+		  z-index: 10;
 		}
-	}
 
-	#inviteFullscreenButton {
-		position: fixed;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		z-index: 6000;
-		padding: 2vh 4vw;
-		color: white;
-		background: rgba(200, 40, 40, 0.9);
-		border: 0;
-		border-radius: 1vh;
-		font-family: sans-serif;
-		font-size: 3vh;
-		font-weight: bold;
-		cursor: pointer;
-	}
+		#hud-container {
+		  position: fixed;
+		  top: 2vh;
+		  left: 2vw;
+		  background-color: rgba(0, 0, 0, 0.2);
+		  color: white;
+		  padding: clamp(0.5vh, 1vh, 2vh) clamp(1vw, 1.5vw, 3vw);
+		  border-radius: clamp(0.5vh, 1vh, 2vh);
+		  font-family: sans-serif;
+		  font-size: clamp(8px, 1.5vh, 24px); /* bude mať vždy min 12px */
+		  line-height: 1.2;
+		  z-index: 1000;
+		  pointer-events: none;
+		  text-shadow: 0 0 5px black, 0 0 10px black;
+		}
 
-	#versionInfoContainer {
-		position: fixed;
-		right: 1.5vw;
-		bottom: 1.5vh;
-		z-index: 5001;
-		margin: 0;
-		padding: 0.5em 0.8em;
-		color: white;
-		background: rgba(0, 0, 0, 0.2);
-		border-radius: 0.4em;
-		font-size: 1.4vmin;
-		line-height: 0.5;
-		text-align: right;
-		pointer-events: none;
-	}
-	
-	.touch-device #versionInfoContainer {
-		right: 140px;
-		bottom: 2vh;
-		font-size: 2.0vmin;
-	}
+		#hud-container h2 {
+		  font-size: clamp(14px, 2vh, 28px);
+		  margin: clamp(0.5vh, 1vh, 2vh) 0;
+		}
 
-	#controls-container,
-	#hud-container,
-	.touch-button,
-	.touch-button-label,
-	#touchMoveZone,
-	#touchRotateZone {
-		-webkit-user-select: none;
-		user-select: none;
-		-webkit-touch-callout: none;
-	}
-	
-	.touch-device .online-dialog {
-		zoom: 2.0;
-		max-width: 64vw;
-		max-height: 65vh;
-		overflow-y: auto;
-	}
-	
-	.touch-device #onlineChatFrame {
-		zoom: 2;
-	}
+		#hud-container p {
+		  margin: clamp(0.25vh, 0.5vh, 1vh) 0;
+		}
+
+		#controls-container {
+		  position: fixed;
+		  top: 30%;
+		  left: 50%;
+		  transform: translate(-50%, -30%);
+		  background-color: rgba(0, 0, 0, 0.4);
+		  color: white;
+		  padding: 1vh 1.5vw;
+		  border-radius: 1vh;
+		  font-family: sans-serif;
+		  font-size: 2.0vh; /* scales with window height */
+		  line-height: 1.2;
+		  z-index: 1000;
+		  pointer-events: none;
+		  text-shadow: 0 0 5px black, 0 0 10px black;
+		}
+
+		#controls-container h2 {
+		  font-size: 2.5vh;
+		  margin: 1vh 0;
+		}
+
+		#controls-container p {
+		  font-size: 2vh;
+		  margin: 0.5vh 0;
+		}
+
+		.touch-device #controls-container {
+			top: 50%;
+			left: 50%;
+			right: auto;
+			bottom: auto;
+			transform: translate(-55%, -50%);
+
+			width: max-content;
+			max-width: 90vw;
+			height: auto;
+			max-height: 92vh;
+
+			box-sizing: border-box;
+			padding: 1vh 1.5vw;
+			margin: 0;
+
+			display: block;
+			overflow-y: auto;
+			pointer-events: auto;
+		}
+
+
+		.touch-zone {
+		  position: fixed;
+		  top: 0;
+		  bottom: 0;
+		  z-index: 1;
+		  touch-action: none;
+		}
+		.move-zone {
+		  left: 0;
+		  width: 50vw;
+		}
+		.rotate-zone {
+		  right: 0;
+		  width: 50vw;
+		}
+		.touch-button {
+			position: fixed;
+			width: 40px;
+			height: 40px;
+			background: rgba(10, 10, 10, 0.20);
+			border-radius: 50%;
+			z-index: 10;
+			touch-action: none;
+		}
+		.touch-button-label {
+		  color: white;
+		  font-family: sans-serif;
+		  font-weight: normal;
+		  font-size: 10px;
+		  position: absolute;
+		  top: 50%;
+		  left: 50%;
+		  transform: translate(-50%, -50%);
+		  pointer-events: none; /* So touches still register on the button */
+		}
+
+		/* Join and Host frames */
+
+		.online-dialog-backdrop {
+			position: fixed;
+			inset: 0;
+			z-index: 5000;
+
+			background: rgba(0, 0, 0, 0.72);
+			font-family: sans-serif;
+		}
+
+		.online-dialog-backdrop[hidden] {
+			display: none;
+		}
+
+		.online-dialog {
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+
+			box-sizing: border-box;
+			width: 30vw;
+			max-height: 90vh;
+			overflow-y: auto;
+
+			padding: 2vh 1.5vw;
+
+			color: white;
+			background: rgba(24, 24, 30, 0.96);
+
+			border: 0.1vh solid rgba(255, 255, 255, 0.25);
+			border-radius: 1vh;
+
+			box-shadow:
+				0 1vh 4vh rgba(0, 0, 0, 0.75),
+				0 0 2vh rgba(255, 204, 51, 0.08);
+
+			font-family: sans-serif;
+			font-size: 1.6vh;
+			line-height: 1.2;
+		}
+
+		.online-join-dialog {
+			width: 40vw;
+		}
+
+		.online-dialog h2 {
+			margin: 0 0 2vh 0;
+
+			color: #FF4D00;
+			font-size: 2.8vh;
+			font-weight: normal;
+			text-align: center;
+		}
+
+		.online-dialog label {
+			display: block;
+			margin: 1.2vh 0 0.5vh 0;
+
+			color: #eeeeee;
+			font-size: 1.6vh;
+		}
+
+		.online-dialog input[type="text"] {
+			box-sizing: border-box;
+			width: 100%;
+
+			padding: 1vh 0.8vw;
+
+			color: white;
+			background: #151515;
+
+			border: 0.1vh solid #666666;
+			border-radius: 0.6vh;
+
+			font-family: sans-serif;
+			font-size: 1.7vh;
+			outline: none;
+		}
+
+		.online-dialog input[type="text"]:focus {
+			border-color: #FF4D00;
+			box-shadow: 0 0 0 0.2vh rgba(255, 204, 51, 0.15);
+		}
+
+		.online-checkbox-row {
+			display: flex !important;
+			align-items: center;
+
+			gap: 0.6vw;
+			margin-top: 1.5vh !important;
+
+			font-size: 1.6vh;
+			cursor: pointer;
+		}
+
+		.online-checkbox-row input[type="checkbox"] {
+			width: 1.8vh;
+			height: 1.8vh;
+		}
+
+		.online-dialog-buttons {
+			display: flex;
+			justify-content: flex-end;
+
+			gap: 0.8vw;
+			margin-top: 2vh;
+		}
+
+		.online-dialog button {
+			padding: 1vh 1vw;
+
+			color: #111111;
+			background: #FF4D00;
+
+			border: 0;
+			border-radius: 0.6vh;
+
+			font-family: sans-serif;
+			font-size: 1.5vh;
+			font-weight: bold;
+			cursor: pointer;
+		}
+
+		.online-dialog button:hover {
+			filter: brightness(1.1);
+		}
+
+		.online-dialog button:disabled {
+			cursor: default;
+			filter: none;
+			opacity: 0.5;
+		}
+
+		.online-dialog .online-secondary-button {
+			color: white;
+			background: #555555;
+		}
+
+		.online-dialog .online-small-button {
+			padding: 0.7vh 0.7vw;
+			font-size: 1.3vh;
+		}
+
+		.online-dialog-message {
+			min-height: 2vh;
+			margin-top: 1.2vh;
+
+			color: #ff8b8b;
+			font-size: 1.4vh;
+		}
+
+		.online-dialog-message.online-success {
+			color: #7cff9b;
+		}
+
+		.online-room-list-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+
+			margin-top: 2vh;
+			margin-bottom: 0.6vh;
+
+			color: #eeeeee;
+			font-size: 1.5vh;
+		}
+
+		.online-room-list {
+			max-height: 28vh;
+			overflow-y: auto;
+
+			background: #121212;
+
+			border: 0.1vh solid #555555;
+			border-radius: 0.6vh;
+		}
+
+		.online-room-row {
+			display: grid;
+			grid-template-columns: 1fr auto auto;
+			gap: 0.8vw;
+			align-items: center;
+
+			padding: 1vh 0.8vw;
+
+			border-bottom: 0.1vh solid #333333;
+			cursor: pointer;
+		}
+
+		.online-room-row:last-child {
+			border-bottom: 0;
+		}
+
+		.online-room-row:hover {
+			background: rgba(255, 204, 51, 0.14);
+		}
+
+		.online-room-name {
+			color: #ffdd66;
+			font-size: 1.5vh;
+			font-weight: bold;
+			overflow-wrap: anywhere;
+		}
+
+		.online-room-host,
+		.online-room-count {
+			color: #cccccc;
+			font-size: 1.3vh;
+		}
+
+		.online-room-count {
+			white-space: nowrap;
+		}
+
+		.online-room-list-info {
+			padding: 1.5vh 1vw;
+
+			color: #aaaaaa;
+			font-size: 1.4vh;
+			text-align: center;
+		}
+
+		/* Online connection */
+
+		.online-connection-frame {
+			position: fixed;
+			top: 2vh;
+			right: 2vw;
+			left: auto;
+			bottom: auto;
+			z-index: 4500;
+
+			box-sizing: border-box;
+			max-width: 35vw;
+
+			padding: 1vh 1.5vw;
+
+			color: white;
+			background-color: rgba(0, 0, 0, 0.2);
+
+			border: none;
+			border-radius: 1vh;
+			box-shadow: none;
+
+			font-family: sans-serif;
+			font-size: 1.5vh;
+			line-height: 1.2;
+
+			pointer-events: none;
+			text-shadow: 0 0 5px black, 0 0 10px black;
+		}
+
+		.online-connection-frame[hidden] {
+			display: none;
+		}
+
+		.online-connection-frame strong {
+			color: #FF4D00;
+			font-size: 1.7vh;
+			font-weight: normal;
+		}
+
+		/* Online Chat */
+
+		.online-chat-frame {
+			position: fixed;
+			top: 14vh;
+			left: 2vw;
+			z-index: 4600;
+
+			box-sizing: border-box;
+			width: 28vw;
+			max-height: 34vh;
+
+			padding: 1vh 1vw;
+
+			color: white;
+			background-color: rgba(0, 0, 0, 0.2);
+
+			border-radius: 1vh;
+
+			font-family: sans-serif;
+			font-size: 1.5vh;
+			line-height: 1.2;
+
+			text-shadow: 0 0 5px black, 0 0 10px black;
+		}
+
+		.online-chat-frame[hidden] {
+			display: none;
+		}
+
+		.online-chat-frame input {
+			box-sizing: border-box;
+			width: 100%;
+
+			padding: 0.8vh 0.7vw;
+			margin-bottom: 0.8vh;
+
+			color: white;
+			background-color: rgba(0, 0, 0, 0.55);
+
+			border: 0.1vh solid rgba(255, 255, 255, 0.35);
+			border-radius: 0.5vh;
+
+			font-family: sans-serif;
+			font-size: 1.5vh;
+			text-shadow: none;
+			outline: none;
+		}
+
+		.online-chat-frame input:focus {
+			border-color: #FF4D00;
+		}
+
+		.online-chat-messages {
+			display: flex;
+			flex-direction: column;
+			gap: 0.35vh;
+
+			max-height: 25vh;
+			overflow-y: auto;
+
+			overflow-wrap: anywhere;
+		}
+
+		.online-chat-message {
+			color: white;
+		}
+
+		.online-chat-player-name {
+			font-weight: bold;
+		}
+		
+		.online-chat-time {
+			color: white;
+			font-weight: normal;
+		}
+
+		@media (max-width: 800px) {
+			.online-chat-frame {
+				width: 50vw;
+			}
+		}
+
+		#inviteFullscreenButton {
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			z-index: 6000;
+			padding: 2vh 4vw;
+			color: white;
+			background: rgba(200, 40, 40, 0.9);
+			border: 0;
+			border-radius: 1vh;
+			font-family: sans-serif;
+			font-size: 3vh;
+			font-weight: bold;
+			cursor: pointer;
+		}
+
+		#versionInfoContainer {
+			position: fixed;
+			right: 1.5vw;
+			bottom: 1.5vh;
+			z-index: 5001;
+			margin: 0;
+			padding: 0.5em 0.8em;
+			color: white;
+			background: rgba(0, 0, 0, 0.2);
+			border-radius: 0.4em;
+			font-size: 1.4vmin;
+			line-height: 0.5;
+			text-align: right;
+			pointer-events: none;
+		}
+		
+		.touch-device #versionInfoContainer {
+			right: 140px;
+			bottom: 2vh;
+			font-size: 2.0vmin;
+		}
+
+		#controls-container,
+		#hud-container,
+		.touch-button,
+		.touch-button-label,
+		#touchMoveZone,
+		#touchRotateZone {
+			-webkit-user-select: none;
+			user-select: none;
+			-webkit-touch-callout: none;
+		}
+		
+		.touch-device .online-dialog {
+			zoom: 2.0;
+			max-width: 64vw;
+			max-height: 65vh;
+			overflow-y: auto;
+		}
+
+		.touch-device #onlineChatFrame {
+			box-sizing: border-box;
+			left: 2vw;
+			right: auto;
+			width: 66vw;
+			max-width: 66vw;
+			transform: none;
+			padding: 12px;
+			font-size: 22px;
+		}
+
+		.touch-device #onlineChatForm {
+			box-sizing: border-box;
+			width: 100%;
+			margin: 0;
+		}
+
+		.touch-device #onlineChatInput {
+			box-sizing: border-box;
+			display: block;
+			width: 100%;
+			max-width: 100%;
+			min-width: 0;
+			padding: 12px 14px;
+			font-size: 22px;
+			line-height: 1.3;
+		}
+
+		.touch-device #onlineChatMessages {
+			box-sizing: border-box;
+			width: 100%;
+			max-width: 100%;
+			font-size: 21px;
+			line-height: 1.35;
+			overflow-wrap: anywhere;
+		}	
 
 	</style>
 
