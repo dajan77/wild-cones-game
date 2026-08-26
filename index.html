@@ -559,7 +559,7 @@
 			max-width: 100%;
 			min-width: 0;
 			padding: 9px 11px;
-			font-size: 16px;
+			font-size: 14px;
 			line-height: 1.25;
 		}
 
@@ -572,7 +572,7 @@
 			max-height: 55dvh;
 			margin-top: 8px;
 			padding-bottom: 4px;
-			font-size: 16px;
+			font-size: 14px;
 			line-height: 1.3;
 			overflow-y: auto;
 			overflow-wrap: anywhere;
@@ -1377,9 +1377,9 @@ null,touchControlState.moveStart=null,n&&(n.controlInput.movex=0,n.controlInput.
 1);touchControlState.lastRotateTapTime=r;touchControlState.rotateTouchId=h.identifier;touchControlState.rotateStart=h}}),c.addEventListener("touchmove",h=>{const n=touchControlState.player;n&&(h=[...h.touches].find(r=>r.identifier===touchControlState.rotateTouchId))&&touchControlState.rotateStart&&(n.controlInput.rotX=(h.clientX-touchControlState.rotateStart.clientX)*touchAxis[camSetting.controlsRotation].x2x+(h.clientY-touchControlState.rotateStart.clientY)*touchAxis[camSetting.controlsRotation].y2x,
 n.controlInput.rotY=(h.clientX-touchControlState.rotateStart.clientX)*touchAxis[camSetting.controlsRotation].x2y+(h.clientY-touchControlState.rotateStart.clientY)*touchAxis[camSetting.controlsRotation].y2y)}),c.addEventListener("touchend",h=>{const n=touchControlState.player;[...h.changedTouches].some(r=>r.identifier===touchControlState.rotateTouchId)&&(touchControlState.rotateTouchId=null,touchControlState.rotateStart=null,n&&(n.controlInput.rotate=0,n.controlInput.rotX=0,n.controlInput.rotY=0,n.controlInput.boost=
 0))}),c.addEventListener("touchcancel",h=>{h=touchControlState.player;touchControlState.rotateTouchId=null;touchControlState.rotateStart=null;h&&(h.controlInput.rotate=0,h.controlInput.rotX=0,h.controlInput.rotY=0,h.controlInput.boost=0)}),d.addEventListener("touchstart",()=>{const h=touchControlState.player;h&&(h.controlInput.strategy=1)}),d.addEventListener("touchend",()=>{const h=touchControlState.player;h&&(h.controlInput.strategy=0)}),e.addEventListener("touchstart",()=>{touchControlState.player&&
-handleGameState("pause")}),f.addEventListener("touchstart",()=>{touchControlState.player&&handleGameState("go")}),g.addEventListener("touchstart",()=>{touchControlState.player&&(graphicsLevel=graphicsLevel===1?0:1,setGraphicsLevel(graphicsLevel))}),k.addEventListener("touchstart",()=>{touchControlState.player&&switchCamera()}),l.addEventListener("touchstart",h=>{h.preventDefault();h.stopPropagation();NetworkManager.isOnline()&&!OnlineChat.hasInputFocus()&&OnlineChat.keyTHoldTimer===null&&(OnlineChat.keyTLongPressTriggered=
-!1,OnlineChat.keyTHoldTimer=setTimeout(()=>{OnlineChat.keyTHoldTimer=null;OnlineChat.keyTLongPressTriggered=!0;OnlineChat.toggleAutoShowIncoming()},OnlineChat.keyTHoldTimeMs))},{passive:!1}),l.addEventListener("touchend",h=>{h.preventDefault();h.stopPropagation();OnlineChat.keyTHoldTimer!==null&&(clearTimeout(OnlineChat.keyTHoldTimer),OnlineChat.keyTHoldTimer=null);!OnlineChat.keyTLongPressTriggered&&NetworkManager.isOnline()&&OnlineChat.open(!0,5E3);OnlineChat.keyTLongPressTriggered=!1},{passive:!1}),
-l.addEventListener("touchcancel",h=>{h.preventDefault();h.stopPropagation();OnlineChat.keyTHoldTimer!==null&&(clearTimeout(OnlineChat.keyTHoldTimer),OnlineChat.keyTHoldTimer=null);OnlineChat.keyTLongPressTriggered=!1},{passive:!1}))):m.forEach(h=>{h.style.display="none"})}}
+handleGameState("pause")}),f.addEventListener("touchstart",()=>{touchControlState.player&&handleGameState("go")}),g.addEventListener("touchstart",()=>{touchControlState.player&&(graphicsLevel=graphicsLevel===1?0:1,setGraphicsLevel(graphicsLevel))}),k.addEventListener("touchstart",()=>{touchControlState.player&&switchCamera()}),l.addEventListener("touchstart",h=>{h.preventDefault();h.stopPropagation();NetworkManager.isOnline()&&OnlineChat.keyTHoldTimer===null&&(OnlineChat.keyTLongPressTriggered=!1,
+OnlineChat.keyTHoldTimer=setTimeout(()=>{OnlineChat.keyTHoldTimer=null;OnlineChat.keyTLongPressTriggered=!0;OnlineChat.toggleAutoShowIncoming()},OnlineChat.keyTHoldTimeMs))},{passive:!1}),l.addEventListener("touchend",h=>{h.preventDefault();h.stopPropagation();OnlineChat.keyTHoldTimer!==null&&(clearTimeout(OnlineChat.keyTHoldTimer),OnlineChat.keyTHoldTimer=null);!OnlineChat.keyTLongPressTriggered&&NetworkManager.isOnline()&&(OnlineChat.frame&&!OnlineChat.frame.hidden?OnlineChat.close():OnlineChat.open(!0,
+5E3));OnlineChat.keyTLongPressTriggered=!1},{passive:!1}),l.addEventListener("touchcancel",h=>{h.preventDefault();h.stopPropagation();OnlineChat.keyTHoldTimer!==null&&(clearTimeout(OnlineChat.keyTHoldTimer),OnlineChat.keyTHoldTimer=null);OnlineChat.keyTLongPressTriggered=!1},{passive:!1}))):m.forEach(h=>{h.style.display="none"})}}
 class HistoryTracker{constructor(){this.bufferSize=61;this.frames=[];this.currentIndex=0}recordFrame(a){a=a.map(b=>({x:b.x,y:b.y,angle:b.angle}));this.frames[this.currentIndex]=a;this.currentIndex++;this.currentIndex>=this.bufferSize&&(this.currentIndex=0)}getFrame(a){a=this.currentIndex-1-a;a<0&&(a+=this.bufferSize);return this.frames[a]||this.frames[this.currentIndex-1]||null}}let socketIoLoadingPromise=null;
 function loadSocketIoClient(){return typeof window.io==="function"?Promise.resolve():socketIoLoadingPromise?socketIoLoadingPromise:socketIoLoadingPromise=new Promise((a,b)=>{const c=document.createElement("script");c.src="https://wild-cones-signaling.onrender.com/socket.io/socket.io.js";c.async=!0;c.onload=function(){typeof window.io==="function"?a():(socketIoLoadingPromise=null,b(Error("Socket.IO script was loaded, but io() is unavailable.")))};c.onerror=function(){socketIoLoadingPromise=null;b(Error("Socket.IO client could not be loaded."))};
 document.head.appendChild(c)})}
