@@ -9549,13 +9549,15 @@
 
 				this.clearWebRtcConnectionTimeout(peerId);
 				this.relayRequestsPending.delete(peerId);
-
+				
 				this.setPeerTransport(
 					peerId,
 					"socket-relay",
 					"Direct P2P connection unavailable"
 				);
 
+				hideOnlineConnecting();
+				
 				/*
 				 * Zatvoríme neúspešné alebo rozpracované
 				 * WebRTC spojenie.
@@ -9623,6 +9625,8 @@
 				peerId,
 				reason
 			);
+			
+			showOnlineConnecting("Direct connection unavailable. Connecting through server relay...");
 
 			this.socket.timeout(10000).emit(
 				"room:enable-relay",
@@ -12475,6 +12479,8 @@
 				this.clearWebRtcConnectionTimeout(remotePeerId);
 				this.relayRequestsPending.delete(remotePeerId);
 				this.setPeerTransport(remotePeerId, "webrtc");
+				
+				hideOnlineConnecting();
 
 				this.sendDataMessage(remotePeerId, {
 					type: "hello",
@@ -13330,7 +13336,7 @@
 				this.closeJoinDialog();
 				this.renderConnectionFrame();
 				
-				hideOnlineConnecting();
+				showOnlineConnecting("Connecting directly to the host...");
 
 				NetworkManager.showGameMessage("Connected to room: " + NetworkManager.roomName);
 			} catch (error) {
