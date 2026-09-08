@@ -11063,8 +11063,9 @@
 					transports: ["websocket", "polling"],
 					timeout: 20000,
 					reconnection: true,
-					reconnectionAttempts: 10,
-					reconnectionDelay: 1000
+					reconnectionAttempts: Infinity,
+					reconnectionDelay: 1000,
+					reconnectionDelayMax: 5000,
 				}
 			);
 
@@ -11120,13 +11121,32 @@
 
 				console.log("[NetworkManager] Socket connected:", this.peerId);
 
-				if (onlineSessionWasActive && this.socket.recovered === false) {
-					console.warn("[NetworkManager] Socket session was not recovered.");
+				if (onlineSessionWasActive) {
+					if (this.socket.recovered) {
+						console.log(
+							"[NetworkManager] Socket session recovered."
+						);
 
-					this.closeAllPeerConnections();
-					this.clearOnlineSessionState();
+						this.showGameMessage(
+							"Online connection restored."
+						);
+					} else {
+						console.warn(
+							"[NetworkManager] Socket connected, " +
+							"but the previous session was not recovered."
+						);
 
-					this.showGameMessage("Online session could not be restored.");
+						this.showGameMessage(
+							"Reconnecting to online game..."
+						);
+
+						/*
+						 * Zatiaľ nemažeme roomName, role, playerName
+						 * ani existujúce peer connections.
+						 *
+						 * Následne tu doplníme aplikačný rejoin.
+						 */
+					}
 				}
 
 				this.emitConnectionStateChanged();
