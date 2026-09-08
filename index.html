@@ -3493,7 +3493,7 @@
 			overlay.hidden = true;
 		}
 	}
-	
+
 
 	function updateRestoreFullscreenButton() {
 		if (!restoreFullscreenButton) {
@@ -3501,22 +3501,22 @@
 		}
 
 		const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-
+		const isEmbedded = window.self !== window.top;
 		const isBrowserFullscreen = Boolean(document.fullscreenElement);
 
-		const invitationFullscreenPending =
-			Boolean( inviteFullscreenButton && !inviteFullscreenButton.hidden );
+		const invitationFullscreenPending = Boolean( inviteFullscreenButton && !inviteFullscreenButton.hidden );
 
 		const shouldShow =
 			isTouchDevice &&
 			!isRunningInCapacitor() &&
+			!isEmbedded &&
 			!isBrowserFullscreen &&
 			!invitationFullscreenPending;
 
 		restoreFullscreenButton.hidden = !shouldShow;
 	}
 	
-
+	
     // -----------------------------
 	//  Sounds
 	// -----------------------------
