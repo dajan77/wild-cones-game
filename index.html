@@ -10638,6 +10638,10 @@
 		roomIsPublic: false,
 		hostPeerId: null,
 		hostPlayerName: null,
+		
+		resumeToken: null,
+		resumeInProgress: false,
+		
 
 		/*
 		 * Lokálny index hráča v players[].
@@ -11138,10 +11142,8 @@
 		},
 
 		installSocketHandlers() {
-			this.socket.on("connect", () => {
-			
-				const previousPeerId = this.peerId; // pridane pre diagnostiku chyby
-				
+			this.socket.on("connect", async () => {
+				const previousPeerId = this.peerId;
 				const onlineSessionWasActive = Boolean(this.roomName && this.role);
 
 				this.peerId = this.socket.id;
@@ -11152,43 +11154,65 @@
 					recovered: this.socket.recovered,
 					roomName: this.roomName,
 					role: this.role,
-					localPlayerIndex: this.localPlayerIndex,
-					localPlayerInfo:
-					this.getOnlinePlayer(this.localPlayerIndex)
-				});				
+					localPlayerIndex: this.localPlayerIndex
+				});
 
-
-				if (onlineSessionWasActive) {
-					if (this.socket.recovered) {
-						console.log(
-							"[NetworkManager] Socket session recovered."
-						);
-
-						this.showGameMessage(
-							"Online connection restored."
-						);
-					} else {
-						console.warn(
-							"[NetworkManager] Socket connected, " +
-							"but the previous session was not recovered."
-						);
-
-						this.showGameMessage(
-							"Reconnecting to online game..."
-						);
-
-						/*
-						 * Zatiaľ nemažeme roomName, role, playerName
-						 * ani existujúce peer connections.
-						 *
-						 * Následne tu doplníme aplikačný rejoin.
-						 */
-					}
+				if (!onlineSessionWasActive) {
+					this.emitConnectionStateChanged();
+					return;
 				}
 
-				this.emitConnectionStateChanged();
-			});
+				if (this.socket.recovered) {
+					console.log("[NetworkManager] Socket session recovered.");
 
+					/*
+					 * Pri úspešnom Socket.IO recovery by malo zostať
+					 * zachované pôvodné socket ID.
+					 */
+					if (
+						previousPeerId &&
+						previousPeerId !== this.peerId
+					) {
+						this.replaceLocalPeerId( previousPeerId, this.peerId );
+						this.emitOnlinePlayersChanged();
+					}
+
+					this.showGameMessage("Online connection restored.");
+					this.emitConnectionStateChanged();
+
+					return;
+				}
+
+				console.warn( "[NetworkManager] Socket connected, " + "but the previous session was not recovered." );
+
+				if ( this.isGuest() && previousPeerId && this.resumeToken ) {
+					await this.resumeGuestSession( previousPeerId );
+
+					return;
+				}
+
+				/*
+				 * Host session sa nedá obnoviť týmto guest mechanizmom.
+				 */
+				this.showGameMessage( "Online session could not be restored." );
+
+				this.closeAllPeerConnections();
+				this.clearOnlineSessionState();
+			});
+			
+			this.socket.on("room:guest-resumed", 
+				async payload => {
+					if (!this.isHost()) {
+						return;
+					}
+
+					try {
+						await this.handleGuestResumed( payload );
+					} catch (error) {
+						this.reportError(error);
+					}
+				}
+			);			
 			
 			this.socket.on("connect_error", (error) => {
 				this.reportError(error);
@@ -11669,6 +11693,8 @@
 							null,
 							null
 						];
+						
+						this.resumeToken = typeof response.resumeToken === "string" ? response.resumeToken : null;
 
 						this.peers.clear();
 						this.peerToPlayerIndex.clear();
@@ -11710,6 +11736,218 @@
 			this.closeAllPeerConnections();
 			this.clearOnlineSessionState();
 		},
+
+		
+		async resumeGuestSession(oldPeerId) {
+			if (
+				!this.isGuest() ||
+				!this.socket ||
+				!this.socket.connected ||
+				!this.roomName ||
+				!this.playerName ||
+				!this.resumeToken ||
+				typeof oldPeerId !== "string"
+			) {
+				return false;
+			}
+
+			if (this.resumeInProgress) {
+				return false;
+			}
+
+			this.resumeInProgress = true;
+
+			showOnlineConnecting("Restoring online connection...");
+
+			try {
+				const response = await new Promise(
+					(resolve, reject) => {
+						this.socket.timeout(10000).emit(
+							"room:resume",
+							{
+								roomName: this.roomName,
+								playerName: this.playerName,
+								oldPeerId: oldPeerId,
+								resumeToken: this.resumeToken
+							},
+							(timeoutError, result) => {
+								if (timeoutError) {
+									reject( new Error("Online session resume timed out.") );
+									return;
+								}
+
+								resolve(result);
+							}
+						);
+					}
+				);
+
+				if (!response?.ok) {
+					throw new Error( response?.error || "Online session could not be restored." );
+				}
+
+				const newPeerId = response.newPeerId;
+
+				if (
+					typeof newPeerId !== "string" ||
+					newPeerId !== this.socket.id
+				) {
+					throw new Error( "The restored peer identity is invalid." );
+				}
+
+				this.resumeToken =
+					typeof response.resumeToken === "string" ? response.resumeToken : this.resumeToken;
+
+				this.replaceLocalPeerId( oldPeerId, newPeerId );
+
+				/*
+				 * Starý WebRTC transport už nemusí byť použiteľný.
+				 * Host po room:guest-resumed vytvorí nové spojenie.
+				 */
+				if (this.hostPeerId) {
+					this.closePeerConnection( this.hostPeerId );
+				}
+
+				this.lastReceivedGameplayStateSequence = -1;
+				this.lastReceivedPlayersControlSequence = -1;
+				this.localPlayerAuthoritativeState = null;
+				this.localPlayerAuthoritativeStateReceivedAt = 0;
+
+				this.emitOnlinePlayersChanged();
+				this.emitConnectionStateChanged();
+
+				this.showGameMessage( "Online connection restored." );
+
+				return true;
+			} catch (error) {
+				console.error( "[NetworkManager] Guest session resume failed:", error );
+				this.showGameMessage( "Online session could not be restored." );
+
+				this.closeAllPeerConnections();
+				this.clearOnlineSessionState();
+
+				return false;
+			} finally {
+				this.resumeInProgress = false;
+				hideOnlineConnecting();
+			}
+		},
+		
+		replaceLocalPeerId(oldPeerId, newPeerId) {
+			if (
+				typeof oldPeerId !== "string" ||
+				typeof newPeerId !== "string"
+			) {
+				return false;
+			}
+
+			let playerIndex = this.findPeerPlayerIndex(oldPeerId);
+
+			if ( playerIndex === null && this.validatePlayerIndex( this.localPlayerIndex ) ) {
+				playerIndex = this.localPlayerIndex;
+			}
+
+			if (playerIndex === null) {
+				return false;
+			}
+
+			const playerInfo = this.onlinePlayers[playerIndex];
+
+			if (!playerInfo) {
+				return false;
+			}
+
+			this.peerToPlayerIndex.delete(oldPeerId);
+
+			this.onlinePlayers[playerIndex] = {
+				...playerInfo,
+				peerId: newPeerId
+			};
+
+			this.peerToPlayerIndex.set(
+				newPeerId,
+				playerIndex
+			);
+
+			this.peerId = newPeerId;
+			this.localPlayerIndex = playerIndex;
+
+			return true;
+		},
+		
+		async handleGuestResumed(payload) {
+			const oldPeerId = payload?.oldPeerId;
+			const newPeerId = payload?.newPeerId;
+			const playerName = payload?.playerName;
+
+			if (
+				typeof oldPeerId !== "string" ||
+				typeof newPeerId !== "string" ||
+				typeof playerName !== "string"
+			) {
+				throw new Error("Invalid resumed guest information.");
+			}
+
+			const playerIndex = this.findPeerPlayerIndex(oldPeerId);
+
+			if (playerIndex === null) {
+				throw new Error("The resumed guest has no player assignment.");
+			}
+
+			const previousPeer = this.peers.get(oldPeerId) || {};
+
+			/*
+			 * Starý transport zatvoríme ešte pred premapovaním.
+			 */
+			this.closePeerConnection(oldPeerId);
+
+			this.peers.delete(oldPeerId);
+			this.peerToPlayerIndex.delete(oldPeerId);
+
+			this.remoteControlInputs.delete(oldPeerId);
+			this.lastReceivedInputSequence.delete(oldPeerId);
+			this.pendingIceCandidates.delete(oldPeerId);
+			this.relayRequestsPending.delete(oldPeerId);
+
+			this.onlinePlayers[playerIndex] = {
+				playerIndex: playerIndex,
+				peerId: newPeerId,
+				playerName: playerName,
+				role: "guest"
+			};
+
+			this.peerToPlayerIndex.set(
+				newPeerId,
+				playerIndex
+			);
+
+			this.peers.set(newPeerId, {
+				...previousPeer,
+				peerId: newPeerId,
+				playerName: playerName,
+				role: "guest",
+				transport: "connecting",
+				fallbackReason: ""
+			});
+
+			console.log(
+				"[NetworkManager] Guest peer resumed:",
+				{
+					oldPeerId: oldPeerId,
+					newPeerId: newPeerId,
+					playerIndex: playerIndex,
+					playerName: playerName
+				}
+			);
+
+			this.emitOnlinePlayersChanged();
+			this.broadcastOnlinePlayerState();
+
+			/*
+			 * Host je iniciátor nového WebRTC spojenia.
+			 */
+			await this.createHostPeerConnection( newPeerId );
+		},		
 
 
 		/* --------------------------------------------------------------- */
@@ -14669,6 +14907,9 @@
 				null,
 				null
 			];
+			
+			this.resumeToken = null;
+			this.resumeInProgress = false;
 
 			this.peers.clear();
 			this.peerToPlayerIndex.clear();
