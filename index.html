@@ -1028,9 +1028,22 @@
 	</button>
 	
 	<div id="onlineConnectingOverlay" hidden>
-		<div class="online-connecting-spinner"></div>
-		<div id="onlineConnectingText">Connecting to online game...</div>
-	</div>	
+		<div
+			id="onlineConnectingSpinner"
+			class="online-connecting-spinner">
+		</div>
+
+		<div class="online-connecting-dialog">
+			<div id="onlineConnectingText"></div>
+
+			<button
+				id="onlineConnectingCloseButton"
+				type="button"
+				hidden>
+				Continue offline
+			</button>
+		</div>
+	</div>
 	
 	<div id="quitMatchDialog" class="online-dialog-backdrop" hidden>
 		<div class="online-dialog">
@@ -1152,7 +1165,7 @@
 	
     // Global Constants & Variables
     // -----------------------------
-	const gameVersion = "0.73";
+	const gameVersion = "0.74";
 	const DEBUG_ENABLED = false;
 	const DEBUG_INFO = false;
 	const DEBUG_AI_DISABLED = false;
@@ -3493,12 +3506,25 @@
 		);
 	}
 	
-	function showOnlineConnecting(message = "Connecting to online game...") {
+	function showOnlineConnecting(
+		message = "Connecting to online game...",
+		allowClose = false
+	) {
 		const overlay = document.getElementById("onlineConnectingOverlay");
 		const text = document.getElementById("onlineConnectingText");
+		const spinner = document.getElementById("onlineConnectingSpinner");
+		const closeButton = document.getElementById("onlineConnectingCloseButton");
 
 		if (text) {
 			text.textContent = message;
+		}
+
+		if (spinner) {
+			spinner.hidden = allowClose;
+		}
+
+		if (closeButton) {
+			closeButton.hidden = !allowClose;
 		}
 
 		if (overlay) {
@@ -3508,12 +3534,21 @@
 
 	function hideOnlineConnecting() {
 		const overlay = document.getElementById("onlineConnectingOverlay");
+		const spinner = document.getElementById("onlineConnectingSpinner");
+		const closeButton = document.getElementById("onlineConnectingCloseButton");
 
 		if (overlay) {
 			overlay.hidden = true;
 		}
-	}
 
+		if (spinner) {
+			spinner.hidden = false;
+		}
+
+		if (closeButton) {
+			closeButton.hidden = true;
+		}
+	}
 
 	function updateRestoreFullscreenButton() {
 		if (!restoreFullscreenButton) {
@@ -11957,9 +11992,23 @@
 			this.closeAllPeerConnections();
 			this.clearOnlineSessionState();
 
-			hideOnlineConnecting();
+			pendingOnlineSessionLost = true;
+			pendingOnlineSessionLostMessage = message;
 
-			this.showGameMessage( message + " The game has been paused. You can continue offline or return to the menu." );
+			if (!document.hidden) {
+				showPendingOnlineSessionLost();
+			}
+		},
+
+		function showPendingOnlineSessionLost() {
+			if (!pendingOnlineSessionLost) {
+				return;
+			}
+
+			pendingOnlineSessionLost = false;
+
+			const message = pendingOnlineSessionLostMessage || "Online connection was lost.";
+			pendingOnlineSessionLostMessage = "";
 
 			if (
 				GState.gameState === "playing" ||
@@ -11967,7 +12016,15 @@
 			) {
 				handleGameState("pause");
 			}
-		},
+
+			showOnlineConnecting(
+				message +
+				" The game has been paused. " +
+				"You can continue offline or use Back to return to the menu.",
+				true
+			);
+		}
+		
 
 		/* --------------------------------------------------------------- */
 		/* Guest registration on host                                      */
@@ -17334,7 +17391,20 @@
 		QuitMatchDialog.init();
 		handleInviteUrl();
 		updateRestoreFullscreenButton();
+		
+		// Connection dialog init
+		const onlineConnectingCloseButton = document.getElementById("onlineConnectingCloseButton");
 
+		if (onlineConnectingCloseButton) {
+			onlineConnectingCloseButton.addEventListener("pointerup", event => {
+				event.preventDefault();
+				event.stopPropagation();
+
+				hideOnlineConnecting();
+			});
+		}		
+		
+		// VR session control init
 		const startVrButton = document.getElementById("touchStartVrButton");
 
 		if (startVrButton) {
