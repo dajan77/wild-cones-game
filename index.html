@@ -765,7 +765,7 @@
 			font-family: sans-serif;
 			font-size: 20px;
 			text-align: center;
-			pointer-events: none;
+			pointer-events: auto;
 		}
 
 		.online-connecting-spinner {
@@ -783,6 +783,32 @@
 				transform: rotate(360deg);
 			}
 		}
+		
+		.online-connecting-dialog {
+			pointer-events: auto;
+		}
+
+		#onlineConnectingCloseButton {
+			margin-top: 16px;
+			padding: 10px 20px;
+			color: white;
+			background: rgba(255, 255, 255, 0.18);
+			border: 1px solid rgba(255, 255, 255, 0.55);
+			border-radius: 8px;
+			font: inherit;
+			cursor: pointer;
+			pointer-events: auto;
+			touch-action: manipulation;
+		}
+
+		#onlineConnectingCloseButton:active {
+			background: rgba(255, 255, 255, 0.32);
+		}
+
+		#onlineConnectingCloseButton[hidden] {
+			display: none;
+		}		
+
 
 	</style>
 
@@ -1058,7 +1084,6 @@
 		</div>
 	</div>	
 	
-
   <script>
   
 	//console.log(THREE.BufferGeometryUtils);
@@ -3601,24 +3626,37 @@
 		restoreFullscreenButton.hidden = !shouldShow;
 	}	
 
+
 	function initializeOnlineConnectingDialog() {
-		const closeButton =
-			document.getElementById("onlineConnectingCloseButton");
+		const closeButton = document.getElementById("onlineConnectingCloseButton");
 
 		if (!closeButton) {
-			console.error(
-				"[OnlineConnecting] Close button was not found."
-			);
+			console.error("[OnlineConnecting] Close button was not found.");
 			return;
 		}
 
+		closeButton.addEventListener("touchstart", event => {
+			event.preventDefault();
+			event.stopPropagation();
+		}, { passive: false });
+
+		closeButton.addEventListener("touchend", event => {
+			event.preventDefault();
+			event.stopPropagation();
+
+			hideOnlineConnecting();
+		}, { passive: false });
+
+		/*
+		 * Pre desktopovú myš.
+		 */
 		closeButton.addEventListener("click", event => {
 			event.preventDefault();
 			event.stopPropagation();
 
 			hideOnlineConnecting();
 		});
-	}	
+	}
 	
     // -----------------------------
 	//  Sounds
