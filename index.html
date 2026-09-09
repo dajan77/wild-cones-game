@@ -3549,6 +3549,32 @@
 			closeButton.hidden = true;
 		}
 	}
+	
+	function showPendingOnlineSessionLost() {
+		if (!pendingOnlineSessionLost) {
+			return;
+		}
+
+		pendingOnlineSessionLost = false;
+
+		const message = pendingOnlineSessionLostMessage || "Online connection was lost.";
+		pendingOnlineSessionLostMessage = "";
+
+		if (
+			GState.gameState === "playing" ||
+			GState.gameState === "overtime"
+		) {
+			handleGameState("pause");
+		}
+
+		showOnlineConnecting(
+			message +
+			" The game has been paused. " +
+			"You can continue offline or use Back to return to the menu.",
+			true
+		);
+	}
+
 
 	function updateRestoreFullscreenButton() {
 		if (!restoreFullscreenButton) {
@@ -11999,31 +12025,6 @@
 				showPendingOnlineSessionLost();
 			}
 		},
-
-		function showPendingOnlineSessionLost() {
-			if (!pendingOnlineSessionLost) {
-				return;
-			}
-
-			pendingOnlineSessionLost = false;
-
-			const message = pendingOnlineSessionLostMessage || "Online connection was lost.";
-			pendingOnlineSessionLostMessage = "";
-
-			if (
-				GState.gameState === "playing" ||
-				GState.gameState === "overtime"
-			) {
-				handleGameState("pause");
-			}
-
-			showOnlineConnecting(
-				message +
-				" The game has been paused. " +
-				"You can continue offline or use Back to return to the menu.",
-				true
-			);
-		}
 		
 
 		/* --------------------------------------------------------------- */
