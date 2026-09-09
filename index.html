@@ -3558,19 +3558,19 @@
 		pendingOnlineSessionLost = false;
 
 		const message = pendingOnlineSessionLostMessage || "Online connection was lost.";
+
 		pendingOnlineSessionLostMessage = "";
 
-		if (
-			GState.gameState === "playing" ||
-			GState.gameState === "overtime"
-		) {
+		if ( GState.gameState === "playing" || GState.gameState === "overtime" ) {
 			handleGameState("pause");
 		}
 
+		const actionText = isRunningInCapacitor()
+			? "Continue offline or use the Back button to return to the menu."
+			: "Continue offline or reload the game.";
+
 		showOnlineConnecting(
-			message +
-			" The game has been paused. " +
-			"You can continue offline or use Back to return to the menu.",
+			message + " The game has been paused. " + actionText,
 			true
 		);
 	}
@@ -3600,7 +3600,25 @@
 
 		restoreFullscreenButton.hidden = !shouldShow;
 	}	
-	
+
+	function initializeOnlineConnectingDialog() {
+		const closeButton =
+			document.getElementById("onlineConnectingCloseButton");
+
+		if (!closeButton) {
+			console.error(
+				"[OnlineConnecting] Close button was not found."
+			);
+			return;
+		}
+
+		closeButton.addEventListener("click", event => {
+			event.preventDefault();
+			event.stopPropagation();
+
+			hideOnlineConnecting();
+		});
+	}	
 	
     // -----------------------------
 	//  Sounds
@@ -17389,24 +17407,15 @@
 	window.addEventListener("pageshow", updateRestoreFullscreenButton);
 
 	window.addEventListener("DOMContentLoaded", () => {
+		// dialogs init
 		OnlineLobbyDialogs.init();
 		OnlineChat.init();
 		OnlineInviteDialog.init();
 		QuitMatchDialog.init();
+		initializeOnlineConnectingDialog();
+		
 		handleInviteUrl();
 		updateRestoreFullscreenButton();
-		
-		// Connection dialog init
-		const onlineConnectingCloseButton = document.getElementById("onlineConnectingCloseButton");
-
-		if (onlineConnectingCloseButton) {
-			onlineConnectingCloseButton.addEventListener("pointerup", event => {
-				event.preventDefault();
-				event.stopPropagation();
-
-				hideOnlineConnecting();
-			});
-		}		
 		
 		// VR session control init
 		const startVrButton = document.getElementById("touchStartVrButton");
