@@ -11890,7 +11890,10 @@
 				return false;
 			} finally {
 				this.resumeInProgress = false;
-				hideOnlineConnecting();
+
+				if (this.isOnline()) {
+					hideOnlineConnecting();
+				}
 			}
 		},
 
