@@ -1192,7 +1192,7 @@
     // -----------------------------
 	const gameVersion = "0.74";
 	const DEBUG_ENABLED = false;
-	const DEBUG_INFO = true;
+	const DEBUG_INFO = false;
 	const DEBUG_AI_DISABLED = false;
 	const AI_NN_ENABLE = false;
 	const FPS_TARGET = 60;
@@ -15615,26 +15615,17 @@
 					"/4 players" +
 					"</div>";
 
-				row.addEventListener(
-					"click",
-					() => {
-						const roomNameInput =
-							document.getElementById(
-								"onlineJoinRoomName"
-							);
+					row.addEventListener("click", () => {
+						const roomNameInput = document.getElementById("onlineJoinRoomName");
 
-						roomNameInput.value =
-							room.name;
-
-						roomNameInput.focus();
+						roomNameInput.value = room.name;
+						roomNameInput.blur();
 
 						this.setJoinMessage(
-							"Selected room: " +
-							room.name,
+							"Selected room: " + room.name,
 							true
 						);
-					}
-				);
+					});
 
 				listElement.appendChild(row);
 			}
