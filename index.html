@@ -11194,10 +11194,7 @@
 				/*
 				 * Host session sa nedá obnoviť týmto guest mechanizmom.
 				 */
-				this.showGameMessage( "Online session could not be restored." );
-
-				this.closeAllPeerConnections();
-				this.clearOnlineSessionState();
+				this.handleOnlineSessionLost( "Online connection could not be restored." );
 			});
 			
 			this.socket.on("room:guest-resumed", 
@@ -11821,10 +11818,13 @@
 				return true;
 			} catch (error) {
 				console.error( "[NetworkManager] Guest session resume failed:", error );
-				this.showGameMessage( "Online session could not be restored." );
 
-				this.closeAllPeerConnections();
-				this.clearOnlineSessionState();
+				const errorMessage =
+					error instanceof Error && error.message
+						? error.message
+						: "Online session could not be restored.";
+
+				this.handleOnlineSessionLost( "Online connection could not be restored. " + errorMessage );
 
 				return false;
 			} finally {
@@ -11832,6 +11832,7 @@
 				hideOnlineConnecting();
 			}
 		},
+
 		
 		replaceLocalPeerId(oldPeerId, newPeerId) {
 			if (
@@ -11949,6 +11950,24 @@
 			await this.createHostPeerConnection( newPeerId );
 		},		
 
+
+		handleOnlineSessionLost(message = "Online connection was lost.") {
+			console.warn("[NetworkManager] Online session lost:", message);
+
+			this.closeAllPeerConnections();
+			this.clearOnlineSessionState();
+
+			hideOnlineConnecting();
+
+			this.showGameMessage( message + " The game has been paused. You can continue offline or return to the menu." );
+
+			if (
+				GState.gameState === "playing" ||
+				GState.gameState === "overtime"
+			) {
+				handleGameState("pause");
+			}
+		},
 
 		/* --------------------------------------------------------------- */
 		/* Guest registration on host                                      */
