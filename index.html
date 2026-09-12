@@ -1033,11 +1033,19 @@
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
+		
+		.mobile-vr-controls-button {
+			flex: 0 0 18%;
+			width: 18%;
+			min-height: 8.5vmin;
+			padding: 1vh 1vw;
+			font-size: clamp(12px, 2.3vmin, 17px);
+		}
 
 		.mobile-title-footer {
 			display: flex;
 			align-items: center;
-			justify-content: flex-start;
+			justify-content: space-between;
 			gap: 1.5vw;
 			margin-top: 1.3vh;
 		}
@@ -1051,9 +1059,10 @@
 
 		.mobile-title-mode {
 			flex: 1 1 auto;
+			min-width: 0;
 			color: #cccccc;
 			font-size: clamp(11px, 1.9vmin, 15px);
-			text-align: left;
+			text-align: center;
 		}
 
 		/*
@@ -1094,6 +1103,89 @@
 			color: white;
 			background: transparent;
 			border-color: rgba(255, 255, 255, 0.75);
+		}
+
+		.vr-controls-dialog {
+			width: min(48vw, 760px);
+		}
+
+		.vr-controls-caption {
+			margin: 0 0 1.2vh;
+			color: #eeeeee;
+			font-size: 1.6vh;
+			text-align: left;
+		}
+
+		.vr-controls-list {
+			display: grid;
+			gap: 0.7vh;
+		}
+
+		.vr-controls-list > div {
+			display: grid;
+			grid-template-columns: minmax(11em, 0.9fr) minmax(14em, 1.1fr);
+			align-items: center;
+			column-gap: 1.2vw;
+			padding: 0.7vh 0.8vw;
+			background: rgba(255, 255, 255, 0.04);
+			border-radius: 0.5vh;
+		}
+
+		.vr-controls-list > div > span:first-child {
+			color: #99AFD7;
+			font-weight: bold;
+			text-align: right;
+		}
+
+		.vr-controls-list > div > span:last-child {
+			color: #eeeeee;
+			text-align: left;
+		}
+
+		.vr-controls-recenter {
+			margin-top: 0.5vh;
+			border: 1px solid rgba(153, 175, 215, 0.25);
+		}
+
+		.touch-device .vr-controls-dialog {
+			box-sizing: border-box;
+			width: 64vw;
+			max-width: 64vw;
+			max-height: 84dvh;
+			padding: 2vh 2vw;
+			overflow-y: auto;
+		}
+
+		.touch-device .vr-controls-dialog h2 {
+			margin-bottom: 1.2vh;
+			font-size: 3.2vmin;
+		}
+
+		.touch-device .vr-controls-caption {
+			margin-bottom: 1vh;
+			font-size: 2.3vmin;
+		}
+
+		.touch-device .vr-controls-list {
+			gap: 0.65vh;
+		}
+
+		.touch-device .vr-controls-list > div {
+			grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+			column-gap: 1.5vw;
+			padding: 0.75vh 1vw;
+			font-size: 2.2vmin;
+			line-height: 1.15;
+		}
+
+		.touch-device .vr-controls-dialog .online-dialog-buttons {
+			margin-top: 1.4vh;
+		}
+
+		.touch-device #vrControlsCloseButton {
+			min-width: 16vw;
+			min-height: 8vmin;
+			font-size: 2.5vmin;
 		}
 
 	</style>
@@ -1370,6 +1462,69 @@
 		</div>
 	</div>	
 	
+	<div id="vrControlsDialog" class="online-dialog-backdrop" hidden>
+		<div class="online-dialog vr-controls-dialog">
+			<h2>VR Controller Guide</h2>
+
+			<p class="vr-controls-caption">
+				Control scheme for VR controllers:
+			</p>
+
+			<div class="vr-controls-list">
+				<div>
+					<span>Left thumbstick</span>
+					<span>Move player</span>
+				</div>
+
+				<div>
+					<span>Right thumbstick</span>
+					<span>Rotate player</span>
+				</div>
+
+				<div>
+					<span>Left trigger</span>
+					<span>Boost</span>
+				</div>
+
+				<div>
+					<span>Right trigger</span>
+					<span>Lift stick</span>
+				</div>
+
+				<div>
+					<span>A button</span>
+					<span>Start / Continue / Ready in online session</span>
+				</div>
+
+				<div>
+					<span>B button</span>
+					<span>Change team strategy for AI player</span>
+				</div>
+
+				<div>
+					<span>X button</span>
+					<span>Change camera</span>
+				</div>
+
+				<div>
+					<span>Y button</span>
+					<span>Pause the game</span>
+				</div>
+
+				<div class="vr-controls-recenter">
+					<span>Both thumbsticks, long press</span>
+					<span>Soft recenter view</span>
+				</div>
+			</div>
+
+			<div class="online-dialog-buttons">
+				<button id="vrControlsCloseButton" type="button">
+					Close
+				</button>
+			</div>
+		</div>
+	</div>	
+	
   <script>function distance(a,b,c,d){return Math.hypot(c-a,d-b)}function clamp(a,b,c){return Math.max(b,Math.min(c,a))}function rotatePoint(a,b,c){return{x:a*Math.cos(c)-b*Math.sin(c),y:a*Math.sin(c)+b*Math.cos(c)}}function limitSpeed(a,b){let c=Math.hypot(a.vx,a.vy);c>b&&(a.vx=a.vx/c*b,a.vy=a.vy/c*b)}function normalizeAngle(a){for(;a>Math.PI;)a-=2*Math.PI;for(;a<-Math.PI;)a+=2*Math.PI;return a}function lerp(a,b,c){return a+(b-a)*c}
 function lerp3(a,b,c){const d=new THREE.Vector3;d.x=lerp(a.x,b.x,c);d.y=lerp(a.y,b.y,c);d.z=lerp(a.z,b.z,c);return d}function getLineSegmentIntersection(a,b,c,d,e,f,g,k){c-=a;d-=b;g-=e;const l=k-f,m=-g*d+c*l;if(m===0)return null;k=(-d*(a-e)+c*(b-f))/m;e=(g*(b-f)-l*(a-e))/m;return e>=0&&e<=1&&k>=0&&k<=1?{x:a+e*c,y:b+e*d,tPuck:e,tStick:k}:null}
 function pointToSegmentDist(a,b,c,d,e,f){e-=c;f-=d;var g=e*e+f*f;if(g===0)return Math.hypot(a-c,b-d);g=Math.max(0,Math.min(1,((a-c)*e+(b-d)*f)/g));return Math.hypot(a-(c+g*e),b-(d+g*f))}function isMobileBrowser(){if(navigator.userAgentData?.mobile===!0)return!0;const a=navigator.userAgent||"",b=["Android","iPhone","iPad","iPod","Mobile"].some(d=>a.includes(d)),c=navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1;return b||c}const gameVersion="0.76",DEBUG_ENABLED=!1;let DEBUG_INFO=!1;
@@ -1401,7 +1556,8 @@ async function detectVrSupport(){vrControlState.supported=!1;if(!navigator.xr||t
 c),vrControlState.supported=!1}b=document.getElementById("touchStartVrButton");if(!vrControlState.supported)return b&&(b.style.display="none"),!1;vrControlState.agentType=getVrAgentType();mainUserControllerType="vr";a=players.findIndex(c=>c.isMainUser===!0);NetworkManager.isOnline()&&NetworkManager.localPlayerIndex!==null&&(a=NetworkManager.localPlayerIndex);a>=0&&players[a]&&selectVRControlledPlayer(a);b&&(b.style.display="block");console.log("VR headset with immersive VR support detected.");return!0}
 function getVrAgentType(){const a=navigator.userAgent.toLowerCase();return a.includes("oculusbrowser")||a.includes("oculus")||a.includes("quest")||a.includes("pico")||a.includes("vive")?"standalone":a.includes("windows")||navigator.platform.toLowerCase().includes("win")?"windows":null}
 function applyVrGraphicsDefaults(){vrControlState.agentType==="standalone"?(graphicsLevel=0,setGraphicsLevel(graphicsLevel),spectatorsFrozen=!1,setSpectatorsFrozen(spectatorsFrozen),spectatorsVisible=!0,setSpectatorsVisible(spectatorsVisible)):vrControlState.agentType==="windows"&&(graphicsLevel=1,setGraphicsLevel(graphicsLevel),spectatorsFrozen=!1,setSpectatorsFrozen(spectatorsFrozen),spectatorsVisible=!0,setSpectatorsVisible(spectatorsVisible))}
-async function initializeDefaultController(){if(!await detectVrSupport()&&"ontouchstart"in window){const a=players.findIndex(b=>b.isMainUser===!0);a>=0&&(setupTouchControlsForPlayer(players[a]),assignControllerTypeToMainUser(players[a],"touch"))}}function getVrThumbstick(a){if(!a||a.axes.length<2)return{x:0,y:0};const b=a.axes.length-2;let c=a.axes[b]||0;a=a.axes[b+1]||0;c=Math.abs(c)<gpDeadZone?0:c;a=Math.abs(a)<gpDeadZone?0:a;return{x:clamp(c,-1,1),y:clamp(a,-1,1)}}
+async function initializeDefaultController(){var a=await detectVrSupport();GState.gameState==="title"&&updateOverlay();!a&&"ontouchstart"in window&&(a=players.findIndex(b=>b.isMainUser===!0),a>=0&&(setupTouchControlsForPlayer(players[a]),assignControllerTypeToMainUser(players[a],"touch")))}
+function getVrThumbstick(a){if(!a||a.axes.length<2)return{x:0,y:0};const b=a.axes.length-2;let c=a.axes[b]||0;a=a.axes[b+1]||0;c=Math.abs(c)<gpDeadZone?0:c;a=Math.abs(a)<gpDeadZone?0:a;return{x:clamp(c,-1,1),y:clamp(a,-1,1)}}
 function updateVrInputSources(){vrControlState.leftInputSource=null;vrControlState.rightInputSource=null;if(typeof renderer==="undefined"||!renderer.xr||typeof renderer.xr.getSession!=="function")return null;const a=renderer.xr.getSession();if(!a)return vrControlState.sessionActive=!1,null;vrControlState.sessionActive=!0;for(const b of a.inputSources)b.gamepad&&(b.handedness==="left"&&(vrControlState.leftInputSource=b),b.handedness==="right"&&(vrControlState.rightInputSource=b));return a}
 const vrCameraForward=new THREE.Vector3,vrCameraRight=new THREE.Vector3,vrWorldUp=new THREE.Vector3(0,1,0);function transformVrStickByView(a){renderer.xr.getCamera(camera).getWorldDirection(vrCameraForward);vrCameraForward.y=0;vrCameraForward.lengthSq()<1E-4?vrCameraForward.set(0,0,-1):vrCameraForward.normalize();vrCameraRight.crossVectors(vrCameraForward,vrWorldUp).normalize();const b=-a.y;a=a.x;return{x:vrCameraRight.x*a+vrCameraForward.x*b,y:vrCameraRight.z*a+vrCameraForward.z*b}}
 function handleVrInput(a){if(a&&a.isVrControl&&a.isMainUser&&updateVrInputSources()){var b=vrControlState.leftInputSource?.gamepad,c=vrControlState.rightInputSource?.gamepad,d=getVrThumbstick(b),e=getVrThumbstick(c);d=transformVrStickByView(d);var f=transformVrStickByView(e);a.controlInput.movex=d.x;a.controlInput.movey=d.y;a.controlInput.rotX=f.x;a.controlInput.rotY=f.y;a.controlInput.rotate=Math.hypot(e.x,e.y)>gpMinZone?clamp(normalizeAngle(Math.atan2(f.y,f.x)-Math.PI/2-a.angle)*2,-1,1):0;a.controlInput.boost=
@@ -1827,10 +1983,12 @@ function setSpectatorsFrozen(a){a?(spectators.forEach(b=>{b.initiateState();b.fr
 				<div class="mobile-title-mode">
 					Select a player, adjust options, then start the match
 				</div>
+
+				${vrControlState.supported?'\n\t\t\t\t<button\n\t\t\t\t\tclass="mobile-title-button mobile-vr-controls-button"\n\t\t\t\t\ttype="button"\n\t\t\t\t\tonpointerup="VrControlsDialog.open()"\n\t\t\t\t>\n\t\t\t\t\tVR Controls\n\t\t\t\t</button>\n\t\t\t':""}
 			</div>
 		`}
-function updateOverlay(){const a=document.getElementById("overlay");var b=`#${teamA.dressColor.toString(16).padStart(6,"0")}`,c=`#${gameStages[GState.actualStage].opponentDressColor.toString(16).padStart(6,"0")}`,d="ontouchstart"in window;document.body.classList.toggle("mobile-title-open",d&&GState.gameState==="title");const e=d?"4.0vmin":"2.0vmin",f=d?"3.2vmin":"1.6vmin",g=d?"0.55em":"0.3em",k=d?"0.8vh":"0.5vmin";if(GState.gameState==="title")navigator.getGamepads(),b=[0,1,2,3].map(l=>{const m=players[l];
-let h="",n="";if(NetworkManager.isRemoteOnlinePlayer(l)||NetworkManager.isLocalOnlinePlayer(l))h=NetworkManager.getOnlinePlayerName(l),n=NetworkManager.isPlayerReady(l)?" Ready":"";return{device:m.isUser?NetworkManager.isRemoteOnlinePlayer(l)?"Online controlled":(m.isMainUser&&!NetworkManager.isGuest()?"Master ":"")+(m.gamepad?"Gamepad "+(m.gamepad.index+1):m.isVrControl?"VR controllers":m.isTouchControl?"Touch control":m.controlKeys?"Keyboard":""):"",name:h,ready:n}}),c=d?"":`
+function updateOverlay(){const a=document.getElementById("overlay");var b=`#${teamA.dressColor.toString(16).padStart(6,"0")}`,c=`#${gameStages[GState.actualStage].opponentDressColor.toString(16).padStart(6,"0")}`,d="ontouchstart"in window;document.body.classList.toggle("mobile-title-open",d&&GState.gameState==="title");const e=d?"4.0vmin":"2.0vmin",f=d?"3.2vmin":"1.6vmin",g=d?"0.55em":"0.3em",k=d?"0.8vh":"0.5vmin";if(GState.gameState==="title"){navigator.getGamepads();c=[0,1,2,3].map(m=>{const h=players[m];
+let n="",r="";if(NetworkManager.isRemoteOnlinePlayer(m)||NetworkManager.isLocalOnlinePlayer(m))n=NetworkManager.getOnlinePlayerName(m),r=NetworkManager.isPlayerReady(m)?" Ready":"";return{device:h.isUser?NetworkManager.isRemoteOnlinePlayer(m)?"Online controlled":(h.isMainUser&&!NetworkManager.isGuest()?"Master ":"")+(h.gamepad?"Gamepad "+(h.gamepad.index+1):h.isVrControl?"VR controllers":h.isTouchControl?"Touch control":h.controlKeys?"Keyboard":""):"",name:n,ready:r}});const l=d?"":`
 		<p style="
 			color: ${"#F6CBA0"};
 			margin: 0;
@@ -1868,7 +2026,7 @@ let h="",n="";if(NetworkManager.isRemoteOnlinePlayer(l)||NetworkManager.isLocalO
 
 				<span style="text-align: right; color: ${"#99AFD7"};">P</span>
 				<span style="color: ${"#CCCCCC"};">Pause game</span>
-			</div> `,a.innerHTML=d?`
+			</div> `;d?a.innerHTML=`
 				<h1 style="
 					margin: 1.5vh 0 0;
 					font-size: clamp(24px, 5.2vmin, 42px);
@@ -1884,18 +2042,18 @@ let h="",n="";if(NetworkManager.isRemoteOnlinePlayer(l)||NetworkManager.isLocalO
 				</h1>
 
 				<div class="mobile-title-container">
-					${createMobileTitleContent(b)}
+					${createMobileTitleContent(c)}
 				</div>
 
 				<div id="versionInfoContainer">
 					<p>by Daniel Janec (2026)</p>
 					<p>version ${gameVersion}</p>
 				</div>
-			`:`
+			`:(b=vrControlState.supported?'\n\t\t\t\t<span style="text-align: right; color: #99AFD7;">V</span>\n\t\t\t\t<span\n\t\t\t\t\tonpointerup="VrControlsDialog.open()"\n\t\t\t\t\tstyle="color: #FFFFFF; pointer-events: auto; cursor: pointer; touch-action: manipulation;"\n\t\t\t\t>\n\t\t\t\t\tVR controller scheme guide\n\t\t\t\t</span>\n\t\t\t':"",a.innerHTML=`
         <h1 style = "font-size: 4.5vh; color: #FF4D00; text-shadow: -1px -1px 0 #FFFFFF, 1px -1px 0 #FFFFFF, -1px 1px 0 #FFFFFF, 1px 1px 0 #FFFFFF;">Wild Cones Hockey Tournament</h1>
 		<div id="controls-container">
 		
-		${c+"<BR>"}
+		${l+"<BR>"}
 			
 			<p style="
 				color: ${"#F6CBA0"};
@@ -1986,6 +2144,8 @@ let h="",n="";if(NetworkManager.isRemoteOnlinePlayer(l)||NetworkManager.isLocalO
 					Online chat (hold to chat pop-ups ${OnlineChat.autoShowIncoming?"<b>ON</b> / Off":"On / <b>OFF</b>"})
 				</span>
 				
+				${b}
+				
 			</div>
 			<BR>
 			<p style="
@@ -2019,16 +2179,16 @@ let h="",n="";if(NetworkManager.isRemoteOnlinePlayer(l)||NetworkManager.isLocalO
 					Player 1:
 				</span>
 				<span style="color: #${players[0].ringColor.toString(16).padStart(6,"0")};">
-					${b[0].device}
+					${c[0].device}
 				</span>
 				<span style="text-align: right; color: white;">
-					${b[0].name===""?"":"Name:"}
+					${c[0].name===""?"":"Name:"}
 				</span>
 				<span style="color: #${players[0].ringColor.toString(16).padStart(6,"0")};">
-					${b[0].name}
+					${c[0].name}
 				</span>
 				<span style="text-align: left; color: white;">
-					${b[0].ready}
+					${c[0].ready}
 				</span>
 
 				<span
@@ -2043,16 +2203,16 @@ let h="",n="";if(NetworkManager.isRemoteOnlinePlayer(l)||NetworkManager.isLocalO
 					Player 2:
 				</span>
 				<span style="color: #${players[1].ringColor.toString(16).padStart(6,"0")};">
-					${b[1].device}
+					${c[1].device}
 				</span>
 				<span style="text-align: right; color: white;">
-					${b[1].name===""?"":"Name:"}
+					${c[1].name===""?"":"Name:"}
 				</span>
 				<span style="color: #${players[1].ringColor.toString(16).padStart(6,"0")};">
-					${b[1].name}
+					${c[1].name}
 				</span>
 				<span style="text-align: left; color: white;">
-					${b[1].ready}
+					${c[1].ready}
 				</span>
 
 				<span
@@ -2067,16 +2227,16 @@ let h="",n="";if(NetworkManager.isRemoteOnlinePlayer(l)||NetworkManager.isLocalO
 					Player 3:
 				</span>
 				<span style="color: #${players[2].ringColor.toString(16).padStart(6,"0")};">
-					${b[2].device}
+					${c[2].device}
 				</span>
 				<span style="text-align: right; color: white;">
-					${b[2].name===""?"":"Name:"}
+					${c[2].name===""?"":"Name:"}
 				</span>
 				<span style="color: #${players[2].ringColor.toString(16).padStart(6,"0")};">
-					${b[2].name}
+					${c[2].name}
 				</span>
 				<span style="text-align: left; color: white;">
-					${b[2].ready}
+					${c[2].ready}
 				</span>
 
 				<span
@@ -2091,16 +2251,16 @@ let h="",n="";if(NetworkManager.isRemoteOnlinePlayer(l)||NetworkManager.isLocalO
 					Player 4:
 				</span>
 				<span style="color: #${players[3].ringColor.toString(16).padStart(6,"0")};">
-					${b[3].device}
+					${c[3].device}
 				</span>
 				<span style="text-align: right; color: white;">
-					${b[3].name===""?"":"Name:"}
+					${c[3].name===""?"":"Name:"}
 				</span>
 				<span style="color: #${players[3].ringColor.toString(16).padStart(6,"0")};">
-					${b[3].name}
+					${c[3].name}
 				</span>
 				<span style="text-align: left; color: white;">
-					${b[3].ready}
+					${c[3].ready}
 				</span>
 			</div>
 			<BR>
@@ -2122,7 +2282,7 @@ let h="",n="";if(NetworkManager.isRemoteOnlinePlayer(l)||NetworkManager.isLocalO
 		">
 			<p>by Daniel Janec (2026)</p>
 			<p>version ${gameVersion}</p>
-		</div>`;else if(GState.gameState==="playing"||GState.gameState==="overtime"||GState.gameState==="tied"){d=`<div id="hud-container">
+		</div>`)}else if(GState.gameState==="playing"||GState.gameState==="overtime"||GState.gameState==="tied"){d=`<div id="hud-container">
 			<h2>
 			  <span style="color: ${b};">${teamA.name}</span>
 			  <span>  ${teamA.score} : ${teamB.score}  </span>
@@ -2276,8 +2436,9 @@ null,setupTouchControlsForPlayer());a.isUser=!0;a.isMainUser=!0;if(a=a.meshGroup
 NetworkManager.localPlayerIndex!==null&&(c="Player "+(NetworkManager.localPlayerIndex+1));var d="";NetworkManager.isGuest()&&NetworkManager.hostPeerId&&(d="<br>Connection: "+this.escapeHtml(NetworkManager.getPeerTransportLabel(NetworkManager.hostPeerId)));if(NetworkManager.isHost()){const e=[];for(const [f,g]of NetworkManager.peers.entries())f!==NetworkManager.peerId&&g.role==="guest"&&e.push(this.escapeHtml(g.playerName)+": "+this.escapeHtml(NetworkManager.getPeerTransportLabel(f)));e.length>0&&
 (d="<br>Connections:<br>"+e.join("<br>"))}a.hidden=!1;a.innerHTML="<strong>"+this.escapeHtml(b)+"</strong><br>Room: "+this.escapeHtml(NetworkManager.roomName||"")+"<br>Name: "+this.escapeHtml(NetworkManager.playerName||"")+"<br>Assigned: "+this.escapeHtml(c)+d}else a.hidden=!0,a.innerHTML=""},setHostBusy(a){document.getElementById("onlineHostGameButton").disabled=a},setJoinBusy(a){document.getElementById("onlineJoinGameButton").disabled=a;document.getElementById("onlineRefreshRoomsButton").disabled=
 a},setHostMessage(a,b=!1){const c=document.getElementById("onlineHostDialogMessage");c.textContent=a||"";c.classList.toggle("online-success",b)},setJoinMessage(a,b=!1){const c=document.getElementById("onlineJoinDialogMessage");c.textContent=a||"";c.classList.toggle("online-success",b)},generateRoomName(){let a="WC-";for(let b=0;b<5;b+=1)a+="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)];return a},savePlayerName(a){try{localStorage.setItem("wildConesOnlinePlayerName",a)}catch(b){console.warn(b)}},
-loadSavedPlayerName(){try{return localStorage.getItem("wildConesOnlinePlayerName")||""}catch(a){return""}},escapeHtml(a){return String(a??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}},QUICK_CHAT_MESSAGES="Hello!;Good game!;Defence!;Nice shot!;Great pass!;Great save!;Sorry!;Thanks.;No way!;Wow!".split(";");
-function getQuickChatMessage(a){return typeof a!=="string"?null:(a=a.match(/^\/([0-9])$/))?QUICK_CHAT_MESSAGES[Number(a[1])]||null:null}
+loadSavedPlayerName(){try{return localStorage.getItem("wildConesOnlinePlayerName")||""}catch(a){return""}},escapeHtml(a){return String(a??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}},VrControlsDialog={dialog:null,closeButton:null,init(){this.dialog=document.getElementById("vrControlsDialog");this.closeButton=document.getElementById("vrControlsCloseButton");this.dialog&&this.closeButton?(this.closeButton.addEventListener("click",
+a=>{a.preventDefault();a.stopPropagation();this.close()}),this.dialog.addEventListener("click",a=>{a.target===this.dialog&&(a.preventDefault(),a.stopPropagation(),this.close())}),this.dialog.addEventListener("keydown",a=>{a.code==="Escape"&&(a.preventDefault(),a.stopPropagation(),this.close())})):console.error("[VrControlsDialog] Dialog elements are missing.")},open(){this.dialog&&vrControlState.supported&&(this.dialog.hidden=!1,this.closeButton&&this.closeButton.focus())},close(){this.dialog&&(this.dialog.hidden=
+!0,this.closeButton&&this.closeButton.blur())},isOpen(){return!(!this.dialog||this.dialog.hidden)}},QUICK_CHAT_MESSAGES="Hello!;Good game!;Defence!;Nice shot!;Great pass!;Great save!;Sorry!;Thanks.;No way!;Wow!".split(";");function getQuickChatMessage(a){return typeof a!=="string"?null:(a=a.match(/^\/([0-9])$/))?QUICK_CHAT_MESSAGES[Number(a[1])]||null:null}
 const OnlineChat={frame:null,input:null,messagesElement:null,closeTimer:null,maxMessages:30,autoShowIncoming:!0,keyTHoldTimer:null,keyTLongPressTriggered:!1,keyTHoldTimeMs:2E3,init(){this.frame=document.getElementById("onlineChatFrame");this.input=document.getElementById("onlineChatInput");this.form=document.getElementById("onlineChatForm");this.messagesElement=document.getElementById("onlineChatMessages");this.quickChatElement=document.getElementById("onlineQuickChat");this.frame&&this.form&&this.input&&
 this.quickChatElement&&this.messagesElement?(this.input.addEventListener("input",()=>{this.scheduleClose(5E3)}),this.input.addEventListener("keydown",a=>{a.stopPropagation();a.code==="Escape"&&(a.preventDefault(),this.close())}),this.form.addEventListener("submit",a=>{a.preventDefault();a.stopPropagation();this.sendCurrentMessage()}),this.input.addEventListener("keyup",a=>{a.stopPropagation()}),this.initializeQuickChat()):console.error("[OnlineChat] Chat HTML elements are missing.")},isOpen(){return this.frame&&
 this.frame.hidden===!1},hasInputFocus(){return this.input&&document.activeElement===this.input},open(a=!0,b=5E3){NetworkManager.isOnline()&&(this.frame.hidden=!1,this.isQuickChatMode()?(this.form.hidden=!0,this.input.blur(),this.quickChatElement.hidden=!a,a?this.closeTimer!==null&&(clearTimeout(this.closeTimer),this.closeTimer=null):this.scheduleClose(b)):(this.form.hidden=!1,this.quickChatElement.hidden=!0,a&&setTimeout(()=>{this.input.focus()},0),this.scheduleClose(b)))},close(){this.frame&&(this.frame.hidden=
@@ -2335,7 +2496,7 @@ a.prevNeuralOutput[1];c[50]=a.prevNeuralOutput[2];c[51]=a.prevNeuralOutput[3];c[
 function applyAINetworkOutput(a,b){a.prevNeuralOutput.set(b);var c=a.team===teamA?1:-1,d=a.team===teamA?1:-1;a.controlInput.movex=applyDeadzone(b[0],.4)*c;a.controlInput.movey=applyDeadzone(b[1],.4)*d;c=Math.atan2(b[2],b[3]);d=normalizeAngle(Math.atan2(puckObj.y-a.y,puckObj.x-a.x)-Math.PI/2);c=normalizeAngle(d+c);c=normalizeAngle(c-a.angle);a.controlInput.rotate=Math.max(-1,Math.min(1,c*2.5));a.controlInput.boost=b[4]>0?1:0;a.controlInput.lift=b[5]>.5?1:0}
 window.addEventListener("resize",function(){camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight)});window.addEventListener("focus",()=>{isRunningInCapacitor()?setTimeout(restoreCapacitorFullscreen,100):setTimeout(updateRestoreFullscreenButton,100)});
 document.addEventListener("visibilitychange",()=>{pageHidden=document.hidden;isRunningInCapacitor()&&!pageHidden&&handleCapacitorAppResumed();pageHidden||(lastTimerUpdate=Date.now(),previousFrameTime=null,simulationAccumulator=0,resetRenderInterpolation(),isRunningInCapacitor()||updateRestoreFullscreenButton())});document.addEventListener("fullscreenchange",updateRestoreFullscreenButton);window.addEventListener("pageshow",updateRestoreFullscreenButton);
-window.addEventListener("DOMContentLoaded",()=>{OnlineLobbyDialogs.init();OnlineChat.init();OnlineInviteDialog.init();QuitMatchDialog.init();initializeOnlineConnectingDialog();handleInviteUrl();updateRestoreFullscreenButton();const a=document.getElementById("touchStartVrButton");a&&a.addEventListener("pointerup",async b=>{b.preventDefault();b.stopPropagation();b=GState.gameState==="title";await startVrSession()&&(a.style.display="none",setPlayerCamera(),applyVrGraphicsDefaults(),enterVrCameraMode(),
-createVrHud(),positionVrHudAboveOppositeStand(),b&&handleGameState("go"))})});</script>
+window.addEventListener("DOMContentLoaded",()=>{OnlineLobbyDialogs.init();OnlineChat.init();OnlineInviteDialog.init();QuitMatchDialog.init();VrControlsDialog.init();initializeOnlineConnectingDialog();handleInviteUrl();updateRestoreFullscreenButton();const a=document.getElementById("touchStartVrButton");a&&a.addEventListener("pointerup",async b=>{b.preventDefault();b.stopPropagation();b=GState.gameState==="title";await startVrSession()&&(a.style.display="none",setPlayerCamera(),applyVrGraphicsDefaults(),
+enterVrCameraMode(),createVrHud(),positionVrHudAboveOppositeStand(),b&&handleGameState("go"))})});</script>
 </body>
 </html>
